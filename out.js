@@ -21936,7 +21936,7 @@ var BodyGame = function (_Component) {
                                     _react2.default.createElement(
                                         "div",
                                         { className: "radioOption" },
-                                        _react2.default.createElement("input", { key: index, onChange: fnShowAnswer, type: "radio", id: el, name: "option", value: el }),
+                                        _react2.default.createElement("input", { key: el, onChange: fnShowAnswer, type: "radio", id: el, name: "option", value: el }),
                                         el
                                     )
                                 );
