@@ -1,0 +1,85 @@
+@import url("https://fonts.googleapis.com/css?family=Finger+Paint");
+
+body {
+    font-family: 'Finger Paint', cursive;
+    background: #1f2427;
+    color: rgb(255,255,255);
+    font-size: 20px;
+    /* text-align: center */
+}
+button{
+    font-family: 'Finger Paint', cursive;
+}
+/* container */
+.container{
+    width: 600px;
+    /* background: #353c41; */
+    padding:  50px;
+    border-radius: 10px;
+    margin: 0 auto;
+    text-align: center
+}
+
+h1{
+    color: red;
+    margin-bottom: 30px;
+}
+
+select{
+    margin-left: 10px;
+    background: white;
+    color: black
+}
+button{
+    background: green;
+    border: 1px solid green;
+    border-radius: 10px;
+    padding: 10px;
+    color: white;
+    text-align: center;
+    margin-top: 30px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+
+.showNumbers{
+    display: inline-block;
+    width: 40%;
+    background: #353c41;
+    border-radius: 10px;
+    padding: 10px;
+}
+.timer-points{
+    float: right;
+    width: 40%;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.timer, .points, {
+    background: #353c41; 
+    margin: 20px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.startCount{
+    margin: 20px;
+    padding: 10px;
+}
+
+.radioOption:hover{
+      background:#1f2427;
+  }
+
+.radioOption{
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 10px;
+  }
+
+input[type=radio]{
+    margin-right: 10px;
+    transform: scale(1.5)
+}
