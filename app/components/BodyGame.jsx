@@ -20,7 +20,7 @@ class BodyGame extends Component{
                                 return(
                                     <label htmlFor={el}>
                                         <div className="radioOption">
-                                        <input key={index} onChange={fnShowAnswer} type="radio" id={el} name="option" value={el} /> 
+                                        <input key={el} onChange={fnShowAnswer} type="radio" id={el} name="option" value={el} /> 
                                         {/* <label htmlFor={el}>{el}</label> */}{el}
                                         </div>
                                     </label>
