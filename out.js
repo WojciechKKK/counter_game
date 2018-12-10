@@ -22019,7 +22019,7 @@ var HeaderWelcome = function (_Component) {
         var _this = _possibleConstructorReturn(this, (HeaderWelcome.__proto__ || Object.getPrototypeOf(HeaderWelcome)).call(this, props));
 
         _this.state = {
-            quan: 20 // choose numbers of qunatity & time 
+            quan: 10 // choose numbers of qunatity & time 
         };
         return _this;
     }

@@ -4,7 +4,7 @@ class HeaderWelcome extends Component{
     constructor(props){
         super(props);
         this.state = {
-            quan: 20 // choose numbers of qunatity & time 
+            quan: 10 // choose numbers of qunatity & time 
         }
     }
 
