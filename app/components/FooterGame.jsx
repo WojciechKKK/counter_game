@@ -13,7 +13,7 @@ class FooterGame extends Component{
                     ? <div>
                         <h1>Result of a game</h1>
                         <h3>All exercises:  { itemsOperationsForView }</h3>
-                        <h3>Points: { points }/{itemsOperationsForView}</h3>
+                        <h3>Points: { points } </h3>
                         <button disabled={false} onClick={ fnResetGame }>Play again</button>
                       </div> 
                     : ''

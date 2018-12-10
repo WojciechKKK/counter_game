@@ -11,28 +11,28 @@ class MathAnswersGame extends Component{
     constructor(props){
         super(props);
         this.state = {
-            sumNumbers: 0,              //suma cyfr
+            sumNumbers: 0,              //sum numbers
             num1: 0,                    //number 1
             num2: 0,                    //number 2
-            answer: '',                 //strzał usera
-            points: 0,                  //suma punktów
-            timeForAnswer: 1,           //czas na jedno zadanie
-            showItemOperation: 1,       //ilosc zadań
-            finish : false,             //warunkuje koniec gry
-            showOptionsForUser: false,  //warunkuje widok wyboru/gry usera
-            arrForNumber: [],            //miejsce dla opcji wyboru cyfr
-            itemMakeOperation: 0,          //ilość operacji-widok
+            answer: '',                 //user's choose
+            points: 0,                  //sum points
+            timeForAnswer: 1,           //time for one exercises
+            showItemOperation: 1,       //items exercises
+            finish : false,             //finish game ?
+            showOptionsForUser: false,  //show view/game ?
+            arrForNumber: [],            //place for oprtions numbers
+            itemMakeOperation: 0,          //item operations -view
 
             //mie ulegają zmianie
-            itemsOperationsForView: 1,  //wynik końcowy operacji
-            timeForAnswerView: 1,       //ilość czasu na zadanie
+            itemsOperationsForView: 1,  //final result of the operation
+            timeForAnswerView: 1,       //time for one exercises
         }
     }
     
 
     randomNUmbers = () => {
-        let num1 = Math.ceil(Math.random() * 5 );
-        let num2 = Math.ceil(Math.random() * 5 );
+        let num1 = this.chooseRandomNumber(1,6);
+        let num2 = this.chooseRandomNumber(1,6);
         let final = num1+ num2;
         this.setState({
           sumNumbers: final,
@@ -41,11 +41,10 @@ class MathAnswersGame extends Component{
         });
     }
 
-    //sprawdza wynik z odpowiedzią
-    checkNumber = () =>{
+    //check final with answer
+    checkNumber = () => {
         const { answer, sumNumbers } = this.state
-            
-        if(answer == sumNumbers){
+            if(answer == sumNumbers){
             this.setState({
                 points: this.state.points +1,
                 answer: ''
@@ -54,7 +53,7 @@ class MathAnswersGame extends Component{
         this.randomNUmbers();
     }
 
-    //pokazuje odpowiedź -form kontrolowany
+    //show answer - form controlled
     showAnswer = (e) => {
         this.setState({
             answer: e.target.value
@@ -65,7 +64,7 @@ class MathAnswersGame extends Component{
         clearInterval(this.timer)
     }
 
-    //uruchamia timery i startuje gre
+    //start timer & game 
     startGame = (e) => {
         this.showOptionsNumber();
         this.timer = setInterval(()=>{
@@ -95,14 +94,15 @@ class MathAnswersGame extends Component{
                 }
             }
         },10);
-        e.currentTarget.disabled = true;
+        e.currentTarget.disabled = 'true'
+        e.currentTarget.className = 'clickOn'
     }
 
     resetGame = () => {
         location.reload()
     }
 
-    //ustawia w state ilość gier
+    //set state game items
     chooseItemsGame = (e) => {
       this.setState({
         showItemOperation: e.target.value,
@@ -110,7 +110,7 @@ class MathAnswersGame extends Component{
       })
     }
 
-    //ustawia w state czas gry
+    //set state game time
     chooseTimeForGame = (e) => {
       this.setState({
         timeForAnswer: e.target.value,
@@ -118,7 +118,7 @@ class MathAnswersGame extends Component{
       })
     }
 
-    //zamyka widok wyboru poziomów gry i losuje liczby
+    //close the view level of game and random numbers
     closeOptionForUser = (e) => {
       this.setState({
         showOptionsForUser: true
@@ -128,64 +128,63 @@ class MathAnswersGame extends Component{
       this.showOptionsNumber();
     }
 
-    //losuje cyfry do wyboru
+    //random number (min,max)
+    chooseRandomNumber = (min,max) => {
+        let number = (Math.floor(Math.random() * (max- min) + min));
+        return number
+    }
+
+    //random numebrs for choice
     showOptionsNumber = () => {
-        let randomNum1 = (Math.floor(Math.random() * (4- 1) + 1));
-        let randomNum2 = (Math.floor(Math.random() * (8 - 5) + 5));
-        let randomNum3 = (Math.floor(Math.random() * (11 - 9) + 9));
         let arrFinal=[];
-        arrFinal.push(randomNum1);
-        arrFinal.push(randomNum2);
-        arrFinal.push(randomNum3);
         arrFinal.push(this.state.sumNumbers);
-        if(arrFinal[3] == arrFinal[0]){
-            arrFinal[0] = (Math.floor(Math.random() * (4- 1) + 1));
-            if(arrFinal[3] == arrFinal[0]){
-                arrFinal[0] = (Math.floor(Math.random() * (4- 1) + 1));
-            }
-        } else if (arrFinal[3] == arrFinal[1]){
-            arrFinal[1] = (Math.floor(Math.random() * (8 - 5) + 5));
-            if (arrFinal[3] == arrFinal[1]){
-                arrFinal[1] = (Math.floor(Math.random() * (8 - 5) + 5));
-            }
-        } else if(arrFinal[3] == arrFinal[2]){
-            arrFinal[2] = (Math.floor(Math.random() * (11 - 9) + 9));
-            if(arrFinal[3] == arrFinal[2]){
-                arrFinal[2] = (Math.floor(Math.random() * (11 - 9) + 9));
-            }
+        let i = 0;
+        while(i < 10){
+            let number = (Math.floor(Math.random() * (11- 1) + 1));
+            if(arrFinal.indexOf(number) == -1){
+                arrFinal.push(number);
+                };
+            if(arrFinal.length == 4){
+                break;
+                }
+            i++
         }
+        console.log(arrFinal);
         arrFinal.sort();
         this.setState({
-            arrForNumber: arrFinal
+            arrForNumber: arrFinal,
         })
     }
    
     render(){
-    const { num1, num2, answer, points, timeForAnswer, showItemOperation, finish, itemsOperationsForView, showOptionsForUser, itemMakeOperation } = this.state;
+    const { num1, num2, points, timeForAnswer, showItemOperation, finish, itemsOperationsForView, showOptionsForUser, itemMakeOperation } = this.state;
         return(
           <div className="container">
             { !showOptionsForUser
               ? <HeaderWelcome 
-                  fnItemGame={this.chooseItemsGame} 
-                  fnTimeGame={this.chooseTimeForGame} 
-                  fnCloseOption={this.closeOptionForUser} />
+                    fnItemGame={this.chooseItemsGame} 
+                    fnTimeGame={this.chooseTimeForGame} 
+                    fnCloseOption={this.closeOptionForUser} 
+                />
               : <div>
-                  <BodyGame 
-                    finishGame={finish} 
-                    num1={num1} 
-                    num2={num2} 
-                    fnShowAnswer={this.showAnswer} 
-                    timeForAnswer={timeForAnswer}
-                    arrRandomNumber={this.state.arrForNumber}
-                    points={points} 
-                    itemMakeOperation={itemMakeOperation}
-                    showItemOperation={showItemOperation}
-                    fnStartGame={this.startGame}  />
-                  <FooterGame 
-                    finishGame={finish} 
-                    points={points} 
-                    fnResetGame={this.resetGame} 
-                    itemsOperationsForView={itemsOperationsForView} />
+                    <BodyGame 
+                        finishGame={finish} 
+                        num1={num1} 
+                        num2={num2} 
+                        fnShowAnswer={this.showAnswer} 
+                        timeForAnswer={timeForAnswer}
+                        arrRandomNumber={this.state.arrForNumber}
+                        points={points} 
+                        itemMakeOperation={itemMakeOperation}
+                        showItemOperation={showItemOperation}
+                        fnStartGame={this.startGame}  
+                    />
+                    <FooterGame 
+                        finishGame={finish} 
+                        points={points} 
+                        fnResetGame={this.resetGame} 
+                        itemsOperationsForView={itemsOperationsForView} 
+                    />
                 </div>
             }
           </div>

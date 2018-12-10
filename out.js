@@ -1439,8 +1439,8 @@ var MathAnswersGame = function (_Component) {
         var _this = _possibleConstructorReturn(this, (MathAnswersGame.__proto__ || Object.getPrototypeOf(MathAnswersGame)).call(this, props));
 
         _this.randomNUmbers = function () {
-            var num1 = Math.ceil(Math.random() * 5);
-            var num2 = Math.ceil(Math.random() * 5);
+            var num1 = _this.chooseRandomNumber(1, 6);
+            var num2 = _this.chooseRandomNumber(1, 6);
             var final = num1 + num2;
             _this.setState({
                 sumNumbers: final,
@@ -1453,7 +1453,6 @@ var MathAnswersGame = function (_Component) {
             var _this$state = _this.state,
                 answer = _this$state.answer,
                 sumNumbers = _this$state.sumNumbers;
-
 
             if (answer == sumNumbers) {
                 _this.setState({
@@ -1503,7 +1502,8 @@ var MathAnswersGame = function (_Component) {
                     }
                 }
             }, 10);
-            e.currentTarget.disabled = true;
+            e.currentTarget.disabled = 'true';
+            e.currentTarget.className = 'clickOn';
         };
 
         _this.resetGame = function () {
@@ -1533,31 +1533,26 @@ var MathAnswersGame = function (_Component) {
             _this.showOptionsNumber();
         };
 
+        _this.chooseRandomNumber = function (min, max) {
+            var number = Math.floor(Math.random() * (max - min) + min);
+            return number;
+        };
+
         _this.showOptionsNumber = function () {
-            var randomNum1 = Math.floor(Math.random() * (4 - 1) + 1);
-            var randomNum2 = Math.floor(Math.random() * (8 - 5) + 5);
-            var randomNum3 = Math.floor(Math.random() * (11 - 9) + 9);
             var arrFinal = [];
-            arrFinal.push(randomNum1);
-            arrFinal.push(randomNum2);
-            arrFinal.push(randomNum3);
             arrFinal.push(_this.state.sumNumbers);
-            if (arrFinal[3] == arrFinal[0]) {
-                arrFinal[0] = Math.floor(Math.random() * (4 - 1) + 1);
-                if (arrFinal[3] == arrFinal[0]) {
-                    arrFinal[0] = Math.floor(Math.random() * (4 - 1) + 1);
+            var i = 0;
+            while (i < 10) {
+                var number = Math.floor(Math.random() * (11 - 1) + 1);
+                if (arrFinal.indexOf(number) == -1) {
+                    arrFinal.push(number);
+                };
+                if (arrFinal.length == 4) {
+                    break;
                 }
-            } else if (arrFinal[3] == arrFinal[1]) {
-                arrFinal[1] = Math.floor(Math.random() * (8 - 5) + 5);
-                if (arrFinal[3] == arrFinal[1]) {
-                    arrFinal[1] = Math.floor(Math.random() * (8 - 5) + 5);
-                }
-            } else if (arrFinal[3] == arrFinal[2]) {
-                arrFinal[2] = Math.floor(Math.random() * (11 - 9) + 9);
-                if (arrFinal[3] == arrFinal[2]) {
-                    arrFinal[2] = Math.floor(Math.random() * (11 - 9) + 9);
-                }
+                i++;
             }
+            console.log(arrFinal);
             arrFinal.sort();
             _this.setState({
                 arrForNumber: arrFinal
@@ -1565,44 +1560,47 @@ var MathAnswersGame = function (_Component) {
         };
 
         _this.state = {
-            sumNumbers: 0, //suma cyfr
+            sumNumbers: 0, //sum numbers
             num1: 0, //number 1
             num2: 0, //number 2
-            answer: '', //strzał usera
-            points: 0, //suma punktów
-            timeForAnswer: 1, //czas na jedno zadanie
-            showItemOperation: 1, //ilosc zadań
-            finish: false, //warunkuje koniec gry
-            showOptionsForUser: false, //warunkuje widok wyboru/gry usera
-            arrForNumber: [], //miejsce dla opcji wyboru cyfr
-            itemMakeOperation: 0, //ilość operacji-widok
+            answer: '', //user's choose
+            points: 0, //sum points
+            timeForAnswer: 1, //time for one exercises
+            showItemOperation: 1, //items exercises
+            finish: false, //finish game ?
+            showOptionsForUser: false, //show view/game ?
+            arrForNumber: [], //place for oprtions numbers
+            itemMakeOperation: 0, //item operations -view
 
             //mie ulegają zmianie
-            itemsOperationsForView: 1, //wynik końcowy operacji
-            timeForAnswerView: 1 //ilość czasu na zadanie
+            itemsOperationsForView: 1, //final result of the operation
+            timeForAnswerView: 1 //time for one exercises
         };
         return _this;
     }
 
-    //sprawdza wynik z odpowiedzią
+    //check final with answer
 
 
-    //pokazuje odpowiedź -form kontrolowany
+    //show answer - form controlled
 
 
-    //uruchamia timery i startuje gre
+    //start timer & game 
 
 
-    //ustawia w state ilość gier
+    //set state game items
 
 
-    //ustawia w state czas gry
+    //set state game time
 
 
-    //zamyka widok wyboru poziomów gry i losuje liczby
+    //close the view level of game and random numbers
 
 
-    //losuje cyfry do wyboru
+    //random number (min,max)
+
+
+    //random numebrs for choice
 
 
     _createClass(MathAnswersGame, [{
@@ -1611,7 +1609,6 @@ var MathAnswersGame = function (_Component) {
             var _state = this.state,
                 num1 = _state.num1,
                 num2 = _state.num2,
-                answer = _state.answer,
                 points = _state.points,
                 timeForAnswer = _state.timeForAnswer,
                 showItemOperation = _state.showItemOperation,
@@ -1626,7 +1623,8 @@ var MathAnswersGame = function (_Component) {
                 !showOptionsForUser ? _react2.default.createElement(_HeaderWelcome2.default, {
                     fnItemGame: this.chooseItemsGame,
                     fnTimeGame: this.chooseTimeForGame,
-                    fnCloseOption: this.closeOptionForUser }) : _react2.default.createElement(
+                    fnCloseOption: this.closeOptionForUser
+                }) : _react2.default.createElement(
                     'div',
                     null,
                     _react2.default.createElement(_BodyGame2.default, {
@@ -1639,12 +1637,14 @@ var MathAnswersGame = function (_Component) {
                         points: points,
                         itemMakeOperation: itemMakeOperation,
                         showItemOperation: showItemOperation,
-                        fnStartGame: this.startGame }),
+                        fnStartGame: this.startGame
+                    }),
                     _react2.default.createElement(_FooterGame2.default, {
                         finishGame: finish,
                         points: points,
                         fnResetGame: this.resetGame,
-                        itemsOperationsForView: itemsOperationsForView })
+                        itemsOperationsForView: itemsOperationsForView
+                    })
                 )
             );
         }
@@ -21203,7 +21203,7 @@ exports = module.exports = __webpack_require__(29)(false);
 exports.push([module.i, "@import url(https://fonts.googleapis.com/css?family=Finger+Paint);", ""]);
 
 // module
-exports.push([module.i, "body {\n  font-family: 'Finger Paint', cursive;\n  background: #1f2427;\n  color: white;\n  font-size: 20px;\n  /* text-align: center */\n}\n\nbutton {\n  font-family: 'Finger Paint', cursive;\n}\n\n/* container */\n\n.container {\n  width: 600px;\n  /* background: #353c41; */\n  padding: 50px;\n  border-radius: 10px;\n  margin: 0 auto;\n  text-align: center;\n}\n\nh1 {\n  color: red;\n  margin-bottom: 30px;\n}\n\nselect {\n  margin-left: 10px;\n  background: white;\n  color: black;\n}\n\nbutton {\n  background: green;\n  border: 1px solid green;\n  border-radius: 10px;\n  padding: 10px;\n  color: white;\n  text-align: center;\n  margin-top: 30px;\n  cursor: pointer;\n  font-size: 15px;\n}\n\n.showNumbers {\n  display: inline-block;\n  width: 40%;\n  background: #353c41;\n  border-radius: 10px;\n  padding: 10px;\n}\n\n.timer-points {\n  float: right;\n  width: 40%;\n  border-radius: 10px;\n  padding: 10px;\n}\n\n.timer,\n.points {\n  background: #353c41;\n  margin: 20px;\n  padding: 10px;\n  border-radius: 10px;\n}\n\n.startCount {\n  margin: 20px;\n  padding: 10px;\n}\n\n.radioOption:hover {\n  background: #1f2427;\n}\n\n.radioOption {\n  padding: 10px;\n  cursor: pointer;\n  border-radius: 10px;\n}\n\ninput[type=radio] {\n  margin-right: 10px;\n  transform: scale(1.5);\n}", ""]);
+exports.push([module.i, "body {\n  font-family: 'Finger Paint', cursive;\n  background: #1f2427;\n  color: white;\n  font-size: 20px;\n  /* text-align: center */\n}\n\nbutton {\n  font-family: 'Finger Paint', cursive;\n}\n\n/* container */\n\n.container {\n  width: 600px;\n  /* background: #353c41; */\n  padding: 50px;\n  border-radius: 10px;\n  margin: 0 auto;\n  text-align: center;\n}\n\nh1 {\n  color: red;\n  margin-bottom: 30px;\n}\n\nselect {\n  margin-left: 5px;\n  background: #353c41;\n  width: 50px;\n  height: 40px;\n  font-size: 20px;\n  color: white;\n  /* padding-left: 5px */\n}\n\noption {\n  font-size: 20px;\n}\n\nbutton {\n  background: green;\n  border: 1px solid green;\n  border-radius: 10px;\n  padding: 10px;\n  color: white;\n  text-align: center;\n  margin-top: 30px;\n  cursor: pointer;\n  font-size: 15px;\n}\n\n.showNumbers {\n  display: inline-block;\n  width: 40%;\n  background: #353c41;\n  border-radius: 10px;\n  padding: 10px;\n}\n\n.timer-points {\n  float: right;\n  width: 40%;\n  border-radius: 10px;\n  padding: 10px;\n}\n\n.timer,\n.points,\n.exercises {\n  background: #353c41;\n  margin: 20px;\n  padding: 10px;\n  border-radius: 10px;\n}\n\n.startCount {\n  margin: 20px;\n  padding: 10px;\n}\n\n.radioOption:hover {\n  background: #1f2427;\n}\n\n.radioOption {\n  padding: 10px;\n  cursor: pointer;\n  border-radius: 10px;\n}\n\ninput[type=radio] {\n  margin-right: 10px;\n  transform: scale(1.5);\n  color: gray;\n}\n\n/* for clickOn button */\n\n.clickOn {\n  opacity: 0.4;\n  cursor: not-allowed;\n}", ""]);
 
 // exports
 
@@ -21836,8 +21836,7 @@ var FooterGame = function (_Component) {
                         null,
                         'Points: ',
                         points,
-                        '/',
-                        itemsOperationsForView
+                        ' '
                     ),
                     _react2.default.createElement(
                         'button',
@@ -21910,12 +21909,6 @@ var BodyGame = function (_Component) {
                     "div",
                     null,
                     _react2.default.createElement(
-                        "h2",
-                        null,
-                        "Remain exercises: ",
-                        showItemOperation
-                    ),
-                    _react2.default.createElement(
                         "div",
                         { className: "showNumbers" },
                         _react2.default.createElement(
@@ -21932,7 +21925,7 @@ var BodyGame = function (_Component) {
                             arrRandomNumber.map(function (el, index) {
                                 return _react2.default.createElement(
                                     "label",
-                                    { htmlFor: el },
+                                    { key: el, htmlFor: el },
                                     _react2.default.createElement(
                                         "div",
                                         { className: "radioOption" },
@@ -21953,9 +21946,7 @@ var BodyGame = function (_Component) {
                             _react2.default.createElement(
                                 "b",
                                 { style: { color: 'red' } },
-                                " ",
-                                timeForAnswer,
-                                " "
+                                timeForAnswer
                             )
                         ),
                         _react2.default.createElement(
@@ -21965,10 +21956,17 @@ var BodyGame = function (_Component) {
                             _react2.default.createElement(
                                 "a",
                                 { style: { color: 'green' } },
-                                " ",
-                                points,
-                                "/",
-                                itemMakeOperation
+                                points
+                            )
+                        ),
+                        _react2.default.createElement(
+                            "h2",
+                            { className: "exercises" },
+                            "To end:",
+                            _react2.default.createElement(
+                                "a",
+                                { style: { color: 'royalblue' } },
+                                showItemOperation - 1
                             )
                         ),
                         _react2.default.createElement(
@@ -22018,7 +22016,12 @@ var HeaderWelcome = function (_Component) {
     function HeaderWelcome(props) {
         _classCallCheck(this, HeaderWelcome);
 
-        return _possibleConstructorReturn(this, (HeaderWelcome.__proto__ || Object.getPrototypeOf(HeaderWelcome)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (HeaderWelcome.__proto__ || Object.getPrototypeOf(HeaderWelcome)).call(this, props));
+
+        _this.state = {
+            quan: 20 // choose numbers of qunatity & time 
+        };
+        return _this;
     }
 
     _createClass(HeaderWelcome, [{
@@ -22026,8 +22029,8 @@ var HeaderWelcome = function (_Component) {
         value: function render() {
             var chooseItemsGame = [];
             var chooseTimeForGame = [];
-
-            for (var i = 0; i < 10; i++) {
+            //make a option numebrs
+            for (var i = 1; i <= this.state.quan; i++) {
                 chooseItemsGame.push(i);
                 chooseTimeForGame.push(i.toFixed(2));
             };
@@ -22071,7 +22074,7 @@ var HeaderWelcome = function (_Component) {
                             return _react2.default.createElement(
                                 'option',
                                 { key: el, value: el },
-                                el
+                                Math.floor(el)
                             );
                         })
                     )

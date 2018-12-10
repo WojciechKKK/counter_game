@@ -26,10 +26,19 @@ h1{
 }
 
 select{
-    margin-left: 10px;
-    background: white;
-    color: black
+    margin-left: 5px;
+    background: #353c41;
+    width: 50px;
+    height: 40px;
+    font-size: 20px;
+    color: white;
+    /* padding-left: 5px */
 }
+
+option{
+    font-size: 20px;
+}
+
 button{
     background: green;
     border: 1px solid green;
@@ -57,7 +66,7 @@ button{
     padding: 10px;
 }
 
-.timer, .points, {
+.timer, .points, .exercises {
     background: #353c41; 
     margin: 20px;
     padding: 10px;
@@ -81,5 +90,12 @@ button{
 
 input[type=radio]{
     margin-right: 10px;
-    transform: scale(1.5)
+    transform: scale(1.5);
+    color: rgb(128, 128, 128)
+}
+
+/* for clickOn button */
+.clickOn{
+    opacity: 0.4;
+    cursor: not-allowed;
 }
