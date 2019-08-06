@@ -1552,7 +1552,7 @@ var MathAnswersGame = function (_Component) {
                 }
                 i++;
             }
-            //console.log(arrFinal);
+            console.log(arrFinal);
             arrFinal.sort();
             _this.setState({
                 arrForNumber: arrFinal
