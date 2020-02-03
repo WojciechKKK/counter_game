@@ -1,0 +1,128 @@
+
+$background: #353c41;
+$btnBakground: green; 
+@mixin infoElement($color){
+    background: $color;
+    font-size: 20px;
+    margin: 15px 0;
+    padding: 15px 0;
+    border-radius: 10px;
+    @media(min-width: 1000px){
+        font-size: 30px;
+    }
+}
+
+.actuallyGame-container{
+    background: #1f2427;
+    height: 100vh;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    // justify-content: center;
+    justify-content: space-around;
+    @media(min-width: 1000px){
+        flex-direction: row;
+        height:40%;
+        width: 100%
+    }
+   
+    .actuallyGame-question{
+        background: $background;
+        border-radius: 10px;
+        padding: 10px 0;
+        @media(min-width: 1000px){
+            width: 40%;
+        }
+        h1{
+            color: red;
+            padding: 20px 0;
+            font-size: 30px;
+            @media(min-width: 1000px){
+                font-size: 40px;
+            }
+        }
+        
+        .actuallyGame-answer{
+            .actuallyGame-answerOptions{
+                padding: 15px 0;
+                font-size: 25px;
+                width: 90%;
+                margin: 0 auto;
+                border-radius: 10px;
+                cursor: pointer;
+                @media(min-width: 1000px){
+                    font-size: 35px;
+                }
+                &:hover{
+                    background-color: #1f2427;
+                }
+                input{
+                    margin-right: 20px;
+                    transform: scale(1.2);
+                    @media(min-width: 1000px){
+                        transform: scale(1.5);
+                    }
+                }
+            }
+        }
+    }
+    .actuallyGame-info{
+        @media(min-width: 1000px){
+            width: 50%;
+        }
+         @media(min-width: 1200px){
+            width: 40%;
+        }
+        .timer{
+           @include infoElement($background);
+            a{
+                color: red;
+                display: block;
+            }
+        }
+        .points{
+            @include infoElement($background);
+            a{
+                color: green
+            }
+        }
+        .exercises{
+            @include infoElement($background);
+            a{
+                color: royalblue
+            }
+
+        }
+        .actuallyGame-btn{
+            font-family: 'Finger Paint', cursive;
+            width: 100%;
+            background: green;
+            color: white;
+            font-size: 20px;
+            border: 1px solid green;
+            border-radius: 10px;
+            padding: 20px 0;
+            margin: 0 auto;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            @media(min-width: 1000px){
+                padding: 25px 0;
+                margin-top: 20px;
+            }
+            &:hover{
+                box-shadow: 0px 0px 10px 2px white;
+            }
+        }
+        .clickOn{
+            cursor: no-drop;
+            background-color: rgba(0, 128, 0, 0.431);  
+            opacity: 0.3;
+            border: none;    
+            &:hover{
+                box-shadow: none;
+            }
+        }
+    }
+}

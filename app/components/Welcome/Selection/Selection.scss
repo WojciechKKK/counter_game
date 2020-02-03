@@ -1,0 +1,19 @@
+$number-color: rgb(0,0,0);
+
+.selection-container{
+    .selection-title{
+        font-size: 20px;
+    }
+    .selection-select{
+        color: $number-color;
+        margin: 20px 0; 
+        // width: 60px;
+        height: 30px;
+        text-align: center;
+        font-size: 15px;
+        padding: 0 10px;
+        .selection-option{
+        }
+    }
+   
+}

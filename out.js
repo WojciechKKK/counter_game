@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 12);
+/******/ 	return __webpack_require__(__webpack_require__.s = 14);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -261,15 +261,483 @@ process.umask = function() { return 0; };
 /* WEBPACK VAR INJECTION */(function(process) {
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(17);
+  module.exports = __webpack_require__(19);
 } else {
-  module.exports = __webpack_require__(18);
+  module.exports = __webpack_require__(20);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
 /* 2 */
+/***/ (function(module, exports) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+
+var stylesInDom = {};
+
+var	memoize = function (fn) {
+	var memo;
+
+	return function () {
+		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+		return memo;
+	};
+};
+
+var isOldIE = memoize(function () {
+	// Test for IE <= 9 as proposed by Browserhacks
+	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
+	// Tests for existence of standard globals is to allow style-loader
+	// to operate correctly into non-standard environments
+	// @see https://github.com/webpack-contrib/style-loader/issues/177
+	return window && document && document.all && !window.atob;
+});
+
+var getTarget = function (target) {
+  return document.querySelector(target);
+};
+
+var getElement = (function (fn) {
+	var memo = {};
+
+	return function(target) {
+                // If passing function in options, then use it for resolve "head" element.
+                // Useful for Shadow Root style i.e
+                // {
+                //   insertInto: function () { return document.querySelector("#foo").shadowRoot }
+                // }
+                if (typeof target === 'function') {
+                        return target();
+                }
+                if (typeof memo[target] === "undefined") {
+			var styleTarget = getTarget.call(this, target);
+			// Special case to return head of iframe instead of iframe itself
+			if (window.HTMLIFrameElement && styleTarget instanceof window.HTMLIFrameElement) {
+				try {
+					// This will throw an exception if access to iframe is blocked
+					// due to cross-origin restrictions
+					styleTarget = styleTarget.contentDocument.head;
+				} catch(e) {
+					styleTarget = null;
+				}
+			}
+			memo[target] = styleTarget;
+		}
+		return memo[target]
+	};
+})();
+
+var singleton = null;
+var	singletonCounter = 0;
+var	stylesInsertedAtTop = [];
+
+var	fixUrls = __webpack_require__(32);
+
+module.exports = function(list, options) {
+	if (typeof DEBUG !== "undefined" && DEBUG) {
+		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+	}
+
+	options = options || {};
+
+	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
+
+	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+	// tags it will allow on a page
+	if (!options.singleton && typeof options.singleton !== "boolean") options.singleton = isOldIE();
+
+	// By default, add <style> tags to the <head> element
+        if (!options.insertInto) options.insertInto = "head";
+
+	// By default, add <style> tags to the bottom of the target
+	if (!options.insertAt) options.insertAt = "bottom";
+
+	var styles = listToStyles(list, options);
+
+	addStylesToDom(styles, options);
+
+	return function update (newList) {
+		var mayRemove = [];
+
+		for (var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+
+			domStyle.refs--;
+			mayRemove.push(domStyle);
+		}
+
+		if(newList) {
+			var newStyles = listToStyles(newList, options);
+			addStylesToDom(newStyles, options);
+		}
+
+		for (var i = 0; i < mayRemove.length; i++) {
+			var domStyle = mayRemove[i];
+
+			if(domStyle.refs === 0) {
+				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
+
+				delete stylesInDom[domStyle.id];
+			}
+		}
+	};
+};
+
+function addStylesToDom (styles, options) {
+	for (var i = 0; i < styles.length; i++) {
+		var item = styles[i];
+		var domStyle = stylesInDom[item.id];
+
+		if(domStyle) {
+			domStyle.refs++;
+
+			for(var j = 0; j < domStyle.parts.length; j++) {
+				domStyle.parts[j](item.parts[j]);
+			}
+
+			for(; j < item.parts.length; j++) {
+				domStyle.parts.push(addStyle(item.parts[j], options));
+			}
+		} else {
+			var parts = [];
+
+			for(var j = 0; j < item.parts.length; j++) {
+				parts.push(addStyle(item.parts[j], options));
+			}
+
+			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+		}
+	}
+}
+
+function listToStyles (list, options) {
+	var styles = [];
+	var newStyles = {};
+
+	for (var i = 0; i < list.length; i++) {
+		var item = list[i];
+		var id = options.base ? item[0] + options.base : item[0];
+		var css = item[1];
+		var media = item[2];
+		var sourceMap = item[3];
+		var part = {css: css, media: media, sourceMap: sourceMap};
+
+		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
+		else newStyles[id].parts.push(part);
+	}
+
+	return styles;
+}
+
+function insertStyleElement (options, style) {
+	var target = getElement(options.insertInto)
+
+	if (!target) {
+		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
+	}
+
+	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
+
+	if (options.insertAt === "top") {
+		if (!lastStyleElementInsertedAtTop) {
+			target.insertBefore(style, target.firstChild);
+		} else if (lastStyleElementInsertedAtTop.nextSibling) {
+			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
+		} else {
+			target.appendChild(style);
+		}
+		stylesInsertedAtTop.push(style);
+	} else if (options.insertAt === "bottom") {
+		target.appendChild(style);
+	} else if (typeof options.insertAt === "object" && options.insertAt.before) {
+		var nextSibling = getElement(options.insertInto + " " + options.insertAt.before);
+		target.insertBefore(style, nextSibling);
+	} else {
+		throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");
+	}
+}
+
+function removeStyleElement (style) {
+	if (style.parentNode === null) return false;
+	style.parentNode.removeChild(style);
+
+	var idx = stylesInsertedAtTop.indexOf(style);
+	if(idx >= 0) {
+		stylesInsertedAtTop.splice(idx, 1);
+	}
+}
+
+function createStyleElement (options) {
+	var style = document.createElement("style");
+
+	if(options.attrs.type === undefined) {
+		options.attrs.type = "text/css";
+	}
+
+	addAttrs(style, options.attrs);
+	insertStyleElement(options, style);
+
+	return style;
+}
+
+function createLinkElement (options) {
+	var link = document.createElement("link");
+
+	if(options.attrs.type === undefined) {
+		options.attrs.type = "text/css";
+	}
+	options.attrs.rel = "stylesheet";
+
+	addAttrs(link, options.attrs);
+	insertStyleElement(options, link);
+
+	return link;
+}
+
+function addAttrs (el, attrs) {
+	Object.keys(attrs).forEach(function (key) {
+		el.setAttribute(key, attrs[key]);
+	});
+}
+
+function addStyle (obj, options) {
+	var style, update, remove, result;
+
+	// If a transform function was defined, run it on the css
+	if (options.transform && obj.css) {
+	    result = options.transform(obj.css);
+
+	    if (result) {
+	    	// If transform returns a value, use that instead of the original css.
+	    	// This allows running runtime transformations on the css.
+	    	obj.css = result;
+	    } else {
+	    	// If the transform function returns a falsy value, don't add this css.
+	    	// This allows conditional loading of css
+	    	return function() {
+	    		// noop
+	    	};
+	    }
+	}
+
+	if (options.singleton) {
+		var styleIndex = singletonCounter++;
+
+		style = singleton || (singleton = createStyleElement(options));
+
+		update = applyToSingletonTag.bind(null, style, styleIndex, false);
+		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
+
+	} else if (
+		obj.sourceMap &&
+		typeof URL === "function" &&
+		typeof URL.createObjectURL === "function" &&
+		typeof URL.revokeObjectURL === "function" &&
+		typeof Blob === "function" &&
+		typeof btoa === "function"
+	) {
+		style = createLinkElement(options);
+		update = updateLink.bind(null, style, options);
+		remove = function () {
+			removeStyleElement(style);
+
+			if(style.href) URL.revokeObjectURL(style.href);
+		};
+	} else {
+		style = createStyleElement(options);
+		update = applyToTag.bind(null, style);
+		remove = function () {
+			removeStyleElement(style);
+		};
+	}
+
+	update(obj);
+
+	return function updateStyle (newObj) {
+		if (newObj) {
+			if (
+				newObj.css === obj.css &&
+				newObj.media === obj.media &&
+				newObj.sourceMap === obj.sourceMap
+			) {
+				return;
+			}
+
+			update(obj = newObj);
+		} else {
+			remove();
+		}
+	};
+}
+
+var replaceText = (function () {
+	var textStore = [];
+
+	return function (index, replacement) {
+		textStore[index] = replacement;
+
+		return textStore.filter(Boolean).join('\n');
+	};
+})();
+
+function applyToSingletonTag (style, index, remove, obj) {
+	var css = remove ? "" : obj.css;
+
+	if (style.styleSheet) {
+		style.styleSheet.cssText = replaceText(index, css);
+	} else {
+		var cssNode = document.createTextNode(css);
+		var childNodes = style.childNodes;
+
+		if (childNodes[index]) style.removeChild(childNodes[index]);
+
+		if (childNodes.length) {
+			style.insertBefore(cssNode, childNodes[index]);
+		} else {
+			style.appendChild(cssNode);
+		}
+	}
+}
+
+function applyToTag (style, obj) {
+	var css = obj.css;
+	var media = obj.media;
+
+	if(media) {
+		style.setAttribute("media", media)
+	}
+
+	if(style.styleSheet) {
+		style.styleSheet.cssText = css;
+	} else {
+		while(style.firstChild) {
+			style.removeChild(style.firstChild);
+		}
+
+		style.appendChild(document.createTextNode(css));
+	}
+}
+
+function updateLink (link, options, obj) {
+	var css = obj.css;
+	var sourceMap = obj.sourceMap;
+
+	/*
+		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
+		and there is no publicPath defined then lets turn convertToAbsoluteUrls
+		on by default.  Otherwise default to the convertToAbsoluteUrls option
+		directly
+	*/
+	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
+
+	if (options.convertToAbsoluteUrls || autoFixUrls) {
+		css = fixUrls(css);
+	}
+
+	if (sourceMap) {
+		// http://stackoverflow.com/a/26603875
+		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+	}
+
+	var blob = new Blob([css], { type: "text/css" });
+
+	var oldSrc = link.href;
+
+	link.href = URL.createObjectURL(blob);
+
+	if(oldSrc) URL.revokeObjectURL(oldSrc);
+}
+
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -311,7 +779,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 module.exports = emptyFunction;
 
 /***/ }),
-/* 3 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -371,7 +839,7 @@ module.exports = invariant;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 4 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -468,7 +936,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 
 
 /***/ }),
-/* 5 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -492,7 +960,7 @@ module.exports = emptyObject;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -506,7 +974,7 @@ module.exports = emptyObject;
 
 
 
-var emptyFunction = __webpack_require__(2);
+var emptyFunction = __webpack_require__(4);
 
 /**
  * Similar to invariant but only logs a warning if the condition is not met.
@@ -561,7 +1029,7 @@ module.exports = warning;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -577,7 +1045,7 @@ module.exports = warning;
 var printWarning = function() {};
 
 if (process.env.NODE_ENV !== 'production') {
-  var ReactPropTypesSecret = __webpack_require__(19);
+  var ReactPropTypesSecret = __webpack_require__(21);
   var loggedTypeFailures = {};
 
   printWarning = function(text) {
@@ -660,7 +1128,7 @@ module.exports = checkPropTypes;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -699,7 +1167,7 @@ var ExecutionEnvironment = {
 module.exports = ExecutionEnvironment;
 
 /***/ }),
-/* 9 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -741,7 +1209,7 @@ function getActiveElement(doc) /*?DOMElement*/{
 module.exports = getActiveElement;
 
 /***/ }),
-/* 10 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -812,7 +1280,7 @@ function shallowEqual(objA, objB) {
 module.exports = shallowEqual;
 
 /***/ }),
-/* 11 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -827,7 +1295,7 @@ module.exports = shallowEqual;
  * 
  */
 
-var isTextNode = __webpack_require__(20);
+var isTextNode = __webpack_require__(22);
 
 /*eslint-disable no-bitwise */
 
@@ -855,15 +1323,15 @@ function containsNode(outerNode, innerNode) {
 module.exports = containsNode;
 
 /***/ }),
-/* 12 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(13);
-module.exports = __webpack_require__(14);
+__webpack_require__(15);
+module.exports = __webpack_require__(16);
 
 
 /***/ }),
-/* 13 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1392,15 +1860,13 @@ if (!self.fetch) {
 
 
 /***/ }),
-/* 14 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _reactDom = __webpack_require__(15);
+var _reactDom = __webpack_require__(17);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
@@ -1408,259 +1874,20 @@ var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
-__webpack_require__(27);
+var _Counter = __webpack_require__(29);
 
-var _FooterGame = __webpack_require__(32);
-
-var _FooterGame2 = _interopRequireDefault(_FooterGame);
-
-var _BodyGame = __webpack_require__(33);
-
-var _BodyGame2 = _interopRequireDefault(_BodyGame);
-
-var _HeaderWelcome = __webpack_require__(34);
-
-var _HeaderWelcome2 = _interopRequireDefault(_HeaderWelcome);
+var _Counter2 = _interopRequireDefault(_Counter);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var MathAnswersGame = function (_Component) {
-    _inherits(MathAnswersGame, _Component);
-
-    function MathAnswersGame(props) {
-        _classCallCheck(this, MathAnswersGame);
-
-        var _this = _possibleConstructorReturn(this, (MathAnswersGame.__proto__ || Object.getPrototypeOf(MathAnswersGame)).call(this, props));
-
-        _this.randomNUmbers = function () {
-            var num1 = _this.chooseRandomNumber(1, 6);
-            var num2 = _this.chooseRandomNumber(1, 6);
-            var final = num1 + num2;
-            _this.setState({
-                sumNumbers: final,
-                num1: num1,
-                num2: num2
-            });
-        };
-
-        _this.checkNumber = function () {
-            var _this$state = _this.state,
-                answer = _this$state.answer,
-                sumNumbers = _this$state.sumNumbers;
-
-            if (answer == sumNumbers) {
-                _this.setState({
-                    points: _this.state.points + 1,
-                    answer: ''
-                });
-            }
-            _this.randomNUmbers();
-        };
-
-        _this.showAnswer = function (e) {
-            _this.setState({
-                answer: e.target.value
-            });
-        };
-
-        _this.componentWillUnmount = function () {
-            clearInterval(_this.timer);
-        };
-
-        _this.startGame = function (e) {
-            _this.showOptionsNumber();
-            _this.timer = setInterval(function () {
-                //zmniejszam czas 
-                _this.setState({
-                    timeForAnswer: (_this.state.timeForAnswer - 0.01).toFixed(2)
-                });
-
-                //sprawdzam czy nie jest przekroczony
-                if (_this.state.timeForAnswer == 0) {
-                    _this.checkNumber();
-                    _this.showOptionsNumber();
-                    _this.setState({
-                        timeForAnswer: _this.state.timeForAnswerView,
-                        showItemOperation: _this.state.showItemOperation - 1,
-                        itemMakeOperation: _this.state.itemMakeOperation + 1,
-                        answer: ''
-                    });
-
-                    //sprawdzam czy ilość gier nie jest przekroczona
-                    if (_this.state.showItemOperation == 0) {
-                        clearInterval(_this.timer);
-                        _this.setState({
-                            answer: '',
-                            finish: true
-                        });
-                    }
-                }
-            }, 10);
-            e.currentTarget.disabled = 'true';
-            e.currentTarget.className = 'clickOn';
-        };
-
-        _this.resetGame = function () {
-            location.reload();
-        };
-
-        _this.chooseItemsGame = function (e) {
-            _this.setState({
-                showItemOperation: e.target.value,
-                itemsOperationsForView: e.target.value
-            });
-        };
-
-        _this.chooseTimeForGame = function (e) {
-            _this.setState({
-                timeForAnswer: e.target.value,
-                timeForAnswerView: e.target.value
-            });
-        };
-
-        _this.closeOptionForUser = function (e) {
-            _this.setState({
-                showOptionsForUser: true
-            });
-            // e.currentTarget.disabled = true;
-            _this.randomNUmbers();
-            _this.showOptionsNumber();
-        };
-
-        _this.chooseRandomNumber = function (min, max) {
-            var number = Math.floor(Math.random() * (max - min) + min);
-            return number;
-        };
-
-        _this.showOptionsNumber = function () {
-            var arrFinal = [];
-            arrFinal.push(_this.state.sumNumbers);
-            var i = 0;
-            while (i < 10) {
-                var number = Math.floor(Math.random() * (11 - 1) + 1);
-                if (arrFinal.indexOf(number) == -1) {
-                    arrFinal.push(number);
-                };
-                if (arrFinal.length == 4) {
-                    break;
-                }
-                i++;
-            }
-//            console.log(arrFinal);
-            arrFinal.sort();
-            _this.setState({
-                arrForNumber: arrFinal
-            });
-        };
-
-        _this.state = {
-            sumNumbers: 0, //sum numbers
-            num1: 0, //number 1
-            num2: 0, //number 2
-            answer: '', //user's choose
-            points: 0, //sum points
-            timeForAnswer: 1, //time for one exercises
-            showItemOperation: 1, //items exercises
-            finish: false, //finish game ?
-            showOptionsForUser: false, //show view/game ?
-            arrForNumber: [], //place for oprtions numbers
-            itemMakeOperation: 0, //item operations -view
-
-            //mie ulegają zmianie
-            itemsOperationsForView: 1, //final result of the operation
-            timeForAnswerView: 1 //time for one exercises
-        };
-        return _this;
-    }
-
-    //check final with answer
-
-
-    //show answer - form controlled
-
-
-    //start timer & game 
-
-
-    //set state game items
-
-
-    //set state game time
-
-
-    //close the view level of game and random numbers
-
-
-    //random number (min,max)
-
-
-    //random numebrs for choice
-
-
-    _createClass(MathAnswersGame, [{
-        key: 'render',
-        value: function render() {
-            var _state = this.state,
-                num1 = _state.num1,
-                num2 = _state.num2,
-                points = _state.points,
-                timeForAnswer = _state.timeForAnswer,
-                showItemOperation = _state.showItemOperation,
-                finish = _state.finish,
-                itemsOperationsForView = _state.itemsOperationsForView,
-                showOptionsForUser = _state.showOptionsForUser,
-                itemMakeOperation = _state.itemMakeOperation;
-
-            return _react2.default.createElement(
-                'div',
-                { className: 'container' },
-                !showOptionsForUser ? _react2.default.createElement(_HeaderWelcome2.default, {
-                    fnItemGame: this.chooseItemsGame,
-                    fnTimeGame: this.chooseTimeForGame,
-                    fnCloseOption: this.closeOptionForUser
-                }) : _react2.default.createElement(
-                    'div',
-                    null,
-                    _react2.default.createElement(_BodyGame2.default, {
-                        finishGame: finish,
-                        num1: num1,
-                        num2: num2,
-                        fnShowAnswer: this.showAnswer,
-                        timeForAnswer: timeForAnswer,
-                        arrRandomNumber: this.state.arrForNumber,
-                        points: points,
-                        itemMakeOperation: itemMakeOperation,
-                        showItemOperation: showItemOperation,
-                        fnStartGame: this.startGame
-                    }),
-                    _react2.default.createElement(_FooterGame2.default, {
-                        finishGame: finish,
-                        points: points,
-                        fnResetGame: this.resetGame,
-                        itemsOperationsForView: itemsOperationsForView
-                    })
-                )
-            );
-        }
-    }]);
-
-    return MathAnswersGame;
-}(_react.Component);
-
 var App = function App() {
-    return _react2.default.createElement(MathAnswersGame, null);
+    return _react2.default.createElement(_Counter2.default, null);
 };
 
 _reactDom2.default.render(_react2.default.createElement(App, null), document.getElementById('app'));
 
 /***/ }),
-/* 15 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1698,15 +1925,15 @@ if (process.env.NODE_ENV === 'production') {
   // DCE check should happen before ReactDOM bundle executes so that
   // DevTools can report bad minification during injection.
   checkDCE();
-  module.exports = __webpack_require__(16);
+  module.exports = __webpack_require__(18);
 } else {
-  module.exports = __webpack_require__(22);
+  module.exports = __webpack_require__(24);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 16 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1722,7 +1949,7 @@ if (process.env.NODE_ENV === 'production') {
 /*
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var aa=__webpack_require__(3),ba=__webpack_require__(1),m=__webpack_require__(8),p=__webpack_require__(4),v=__webpack_require__(2),da=__webpack_require__(9),ea=__webpack_require__(10),fa=__webpack_require__(11),ha=__webpack_require__(5);
+var aa=__webpack_require__(5),ba=__webpack_require__(1),m=__webpack_require__(10),p=__webpack_require__(6),v=__webpack_require__(4),da=__webpack_require__(11),ea=__webpack_require__(12),fa=__webpack_require__(13),ha=__webpack_require__(7);
 function A(a){for(var b=arguments.length-1,c="https://reactjs.org/docs/error-decoder.html?invariant="+a,d=0;d<b;d++)c+="&args[]="+encodeURIComponent(arguments[d+1]);aa(!1,"Minified React error #"+a+"; visit %s for the full message or use the non-minified dev environment for full errors and additional helpful warnings. ",c)}ba?void 0:A("227");
 function ia(a,b,c,d,e,f,g,h,k){this._hasCaughtError=!1;this._caughtError=null;var n=Array.prototype.slice.call(arguments,3);try{b.apply(c,n)}catch(r){this._caughtError=r,this._hasCaughtError=!0}}
 var B={_caughtError:null,_hasCaughtError:!1,_rethrowError:null,_hasRethrowError:!1,invokeGuardedCallback:function(a,b,c,d,e,f,g,h,k){ia.apply(B,arguments)},invokeGuardedCallbackAndCatchFirstError:function(a,b,c,d,e,f,g,h,k){B.invokeGuardedCallback.apply(this,arguments);if(B.hasCaughtError()){var n=B.clearCaughtError();B._hasRethrowError||(B._hasRethrowError=!0,B._rethrowError=n)}},rethrowCaughtError:function(){return ka.apply(B,arguments)},hasCaughtError:function(){return B._hasCaughtError},clearCaughtError:function(){if(B._hasCaughtError){var a=
@@ -1953,7 +2180,7 @@ var Ai={default:vi},Bi=Ai&&vi||Ai;module.exports=Bi.default?Bi.default:Bi;
 
 
 /***/ }),
-/* 17 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1966,7 +2193,7 @@ var Ai={default:vi},Bi=Ai&&vi||Ai;module.exports=Bi.default?Bi.default:Bi;
  * LICENSE file in the root directory of this source tree.
  */
 
-var k=__webpack_require__(4),n=__webpack_require__(3),p=__webpack_require__(5),q=__webpack_require__(2),r="function"===typeof Symbol&&Symbol.for,t=r?Symbol.for("react.element"):60103,u=r?Symbol.for("react.portal"):60106,v=r?Symbol.for("react.fragment"):60107,w=r?Symbol.for("react.strict_mode"):60108,x=r?Symbol.for("react.profiler"):60114,y=r?Symbol.for("react.provider"):60109,z=r?Symbol.for("react.context"):60110,A=r?Symbol.for("react.async_mode"):60111,B=
+var k=__webpack_require__(6),n=__webpack_require__(5),p=__webpack_require__(7),q=__webpack_require__(4),r="function"===typeof Symbol&&Symbol.for,t=r?Symbol.for("react.element"):60103,u=r?Symbol.for("react.portal"):60106,v=r?Symbol.for("react.fragment"):60107,w=r?Symbol.for("react.strict_mode"):60108,x=r?Symbol.for("react.profiler"):60114,y=r?Symbol.for("react.provider"):60109,z=r?Symbol.for("react.context"):60110,A=r?Symbol.for("react.async_mode"):60111,B=
 r?Symbol.for("react.forward_ref"):60112;r&&Symbol.for("react.timeout");var C="function"===typeof Symbol&&Symbol.iterator;function D(a){for(var b=arguments.length-1,e="https://reactjs.org/docs/error-decoder.html?invariant="+a,c=0;c<b;c++)e+="&args[]="+encodeURIComponent(arguments[c+1]);n(!1,"Minified React error #"+a+"; visit %s for the full message or use the non-minified dev environment for full errors and additional helpful warnings. ",e)}
 var E={isMounted:function(){return!1},enqueueForceUpdate:function(){},enqueueReplaceState:function(){},enqueueSetState:function(){}};function F(a,b,e){this.props=a;this.context=b;this.refs=p;this.updater=e||E}F.prototype.isReactComponent={};F.prototype.setState=function(a,b){"object"!==typeof a&&"function"!==typeof a&&null!=a?D("85"):void 0;this.updater.enqueueSetState(this,a,b,"setState")};F.prototype.forceUpdate=function(a){this.updater.enqueueForceUpdate(this,a,"forceUpdate")};function G(){}
 G.prototype=F.prototype;function H(a,b,e){this.props=a;this.context=b;this.refs=p;this.updater=e||E}var I=H.prototype=new G;I.constructor=H;k(I,F.prototype);I.isPureReactComponent=!0;var J={current:null},K=Object.prototype.hasOwnProperty,L={key:!0,ref:!0,__self:!0,__source:!0};
@@ -1982,7 +2209,7 @@ assign:k}},Y={default:X},Z=Y&&X||Y;module.exports=Z.default?Z.default:Z;
 
 
 /***/ }),
-/* 18 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2003,12 +2230,12 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var _assign = __webpack_require__(4);
-var invariant = __webpack_require__(3);
-var emptyObject = __webpack_require__(5);
-var warning = __webpack_require__(6);
-var emptyFunction = __webpack_require__(2);
-var checkPropTypes = __webpack_require__(7);
+var _assign = __webpack_require__(6);
+var invariant = __webpack_require__(5);
+var emptyObject = __webpack_require__(7);
+var warning = __webpack_require__(8);
+var emptyFunction = __webpack_require__(4);
+var checkPropTypes = __webpack_require__(9);
 
 // TODO: this is special because it gets imported during build.
 
@@ -3476,7 +3703,7 @@ module.exports = react;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 19 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3495,7 +3722,7 @@ module.exports = ReactPropTypesSecret;
 
 
 /***/ }),
-/* 20 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3510,7 +3737,7 @@ module.exports = ReactPropTypesSecret;
  * @typechecks
  */
 
-var isNode = __webpack_require__(21);
+var isNode = __webpack_require__(23);
 
 /**
  * @param {*} object The object to check.
@@ -3523,7 +3750,7 @@ function isTextNode(object) {
 module.exports = isTextNode;
 
 /***/ }),
-/* 21 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3551,7 +3778,7 @@ function isNode(object) {
 module.exports = isNode;
 
 /***/ }),
-/* 22 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3572,19 +3799,19 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var invariant = __webpack_require__(3);
+var invariant = __webpack_require__(5);
 var React = __webpack_require__(1);
-var warning = __webpack_require__(6);
-var ExecutionEnvironment = __webpack_require__(8);
-var _assign = __webpack_require__(4);
-var emptyFunction = __webpack_require__(2);
-var checkPropTypes = __webpack_require__(7);
-var getActiveElement = __webpack_require__(9);
-var shallowEqual = __webpack_require__(10);
-var containsNode = __webpack_require__(11);
-var emptyObject = __webpack_require__(5);
-var hyphenateStyleName = __webpack_require__(23);
-var camelizeStyleName = __webpack_require__(25);
+var warning = __webpack_require__(8);
+var ExecutionEnvironment = __webpack_require__(10);
+var _assign = __webpack_require__(6);
+var emptyFunction = __webpack_require__(4);
+var checkPropTypes = __webpack_require__(9);
+var getActiveElement = __webpack_require__(11);
+var shallowEqual = __webpack_require__(12);
+var containsNode = __webpack_require__(13);
+var emptyObject = __webpack_require__(7);
+var hyphenateStyleName = __webpack_require__(25);
+var camelizeStyleName = __webpack_require__(27);
 
 // Relying on the `invariant()` implementation lets us
 // have preserve the format and params in the www builds.
@@ -20989,7 +21216,7 @@ module.exports = reactDom;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 23 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21004,7 +21231,7 @@ module.exports = reactDom;
 
 
 
-var hyphenate = __webpack_require__(24);
+var hyphenate = __webpack_require__(26);
 
 var msPattern = /^ms-/;
 
@@ -21031,7 +21258,7 @@ function hyphenateStyleName(string) {
 module.exports = hyphenateStyleName;
 
 /***/ }),
-/* 24 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21067,7 +21294,7 @@ function hyphenate(string) {
 module.exports = hyphenate;
 
 /***/ }),
-/* 25 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21082,7 +21309,7 @@ module.exports = hyphenate;
 
 
 
-var camelize = __webpack_require__(26);
+var camelize = __webpack_require__(28);
 
 var msPattern = /^-ms-/;
 
@@ -21110,7 +21337,7 @@ function camelizeStyleName(string) {
 module.exports = camelizeStyleName;
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21145,11 +21372,329 @@ function camelize(string) {
 module.exports = camelize;
 
 /***/ }),
-/* 27 */
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+__webpack_require__(30);
+
+__webpack_require__(33);
+
+var _Finish = __webpack_require__(35);
+
+var _Finish2 = _interopRequireDefault(_Finish);
+
+var _Welcome = __webpack_require__(38);
+
+var _Welcome2 = _interopRequireDefault(_Welcome);
+
+var _ActuallyGame = __webpack_require__(44);
+
+var _ActuallyGame2 = _interopRequireDefault(_ActuallyGame);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Counter = function (_Component) {
+    _inherits(Counter, _Component);
+
+    function Counter(props) {
+        _classCallCheck(this, Counter);
+
+        var _this = _possibleConstructorReturn(this, (Counter.__proto__ || Object.getPrototypeOf(Counter)).call(this, props));
+
+        _this.randomNUmbers = function () {
+            var selectOperation = _this.state.selectOperation;
+
+            var num1 = void 0;
+            var num2 = void 0;
+            var final = void 0;
+
+            if (selectOperation == 'addition') {
+                //set a param for addition
+                num1 = _this.chooseRandomNumber(1, 50);
+                num2 = _this.chooseRandomNumber(1, 50);
+                final = num1 + num2;
+            } else if (selectOperation == 'substraction') {
+                //set a param for substraction
+                num1 = _this.chooseRandomNumber(11, 100);
+                num2 = _this.chooseRandomNumber(1, 10);
+                final = num1 - num2;
+            } else if (selectOperation == 'multiplication') {
+                //set a param for multiplication
+                num1 = _this.chooseRandomNumber(1, 10);
+                num2 = _this.chooseRandomNumber(1, 10);
+                final = num1 * num2;
+            } else {
+                //set a param for division
+                num1 = _this.chooseRandomNumber(1, 100);
+                var dividersNum = [];
+                for (var i = 0; i < num1; i++) {
+                    if (num1 % i === 0) {
+                        dividersNum.push(i);
+                    }
+                }
+                //random num from arr
+                num2 = dividersNum[Math.floor(dividersNum.length * Math.random())];
+                final = num1 / num2;
+            };
+            _this.setState({
+                sumNumbers: final,
+                num1: num1,
+                num2: num2,
+                answer: ''
+            });
+        };
+
+        _this.checkNumber = function () {
+            var _this$state = _this.state,
+                answer = _this$state.answer,
+                sumNumbers = _this$state.sumNumbers;
+
+            if (answer == sumNumbers) {
+                _this.setState({
+                    points: _this.state.points + 1,
+                    answer: ''
+                });
+            }
+            _this.randomNUmbers();
+        };
+
+        _this.showAnswer = function (e) {
+            _this.setState({
+                answer: e.target.value
+            });
+        };
+
+        _this.componentWillUnmount = function () {
+            clearInterval(_this.timer);
+        };
+
+        _this.startGame = function (e) {
+            _this.showOptionsNumber();
+            _this.timer = setInterval(function () {
+                //zmniejszam czas 
+                _this.setState({
+                    timeForAnswer: (_this.state.timeForAnswer - 0.01).toFixed(2)
+                });
+
+                //sprawdzam czy nie jest przekroczony
+                if (_this.state.timeForAnswer == 0) {
+                    _this.checkNumber();
+                    _this.showOptionsNumber();
+                    _this.setState({
+                        timeForAnswer: _this.state.timeForAnswerView,
+                        showItemOperation: _this.state.showItemOperation - 1,
+                        itemMakeOperation: _this.state.itemMakeOperation + 1,
+                        answer: ''
+                    });
+
+                    //sprawdzam czy ilość gier nie jest przekroczona
+                    if (_this.state.showItemOperation == 0) {
+                        clearInterval(_this.timer);
+                        _this.setState({
+                            answer: '',
+                            finish: true
+                        });
+                    }
+                }
+            }, 10);
+            e.currentTarget.disabled = 'true';
+            e.currentTarget.classList.add('clickOn');
+        };
+
+        _this.resetGame = function () {
+            location.reload();
+        };
+
+        _this.chooseItemGame = function (e) {
+            _this.setState({
+                showItemOperation: e.target.value,
+                itemsOperationsForView: e.target.value
+            });
+        };
+
+        _this.chooseTimeGame = function (e) {
+            var textFromUser = e.target.value;
+            var textFromUserToNumber = Number(textFromUser);
+            _this.setState({
+                timeForAnswer: textFromUserToNumber.toFixed(2),
+                timeForAnswerView: textFromUserToNumber.toFixed(2)
+            });
+        };
+
+        _this.closeOptionForUser = function (e) {
+            var _this$state2 = _this.state,
+                showItemOperation = _this$state2.showItemOperation,
+                timeForAnswer = _this$state2.timeForAnswer,
+                selectOperation = _this$state2.selectOperation;
+
+            if (showItemOperation == 0 || timeForAnswer == 0 || selectOperation == '') {
+                return alert('Complete all options :) ');
+            }
+            _this.setState({
+                showOptionsForUser: true
+            });
+            // e.currentTarget.disabled = true;
+            _this.randomNUmbers();
+            _this.showOptionsNumber();
+        };
+
+        _this.chooseRandomNumber = function (min, max) {
+            var number = Math.floor(Math.random() * (max - min) + min);
+            return number;
+        };
+
+        _this.showOptionsNumber = function () {
+            var arrFinal = [];
+            arrFinal.push(_this.state.sumNumbers);
+            var i = 0;
+            while (i < 100) {
+                var number = Math.floor(Math.random() * (100 - 1) + 1);
+                if (arrFinal.indexOf(number) == -1) {
+                    arrFinal.push(number);
+                };
+                if (arrFinal.length == 4) {
+                    break;
+                }
+                i++;
+            }
+            // console.log(arrFinal);
+            arrFinal.sort();
+            _this.setState({
+                arrForNumber: arrFinal
+            });
+        };
+
+        _this.setOperation = function (e) {
+            _this.setState({
+                selectOperation: e.target.value
+            });
+        };
+
+        _this.state = {
+            sumNumbers: 0, //sum numbers
+            num1: 0, //number 1
+            num2: 0, //number 2
+            answer: '', //user's choose
+            points: 0, //sum points
+            timeForAnswer: 0, //time for one exercises
+            showItemOperation: 0, //items exercises
+            finish: false, //finish game ?
+            showOptionsForUser: false, //show view/game ?
+            arrForNumber: [], //place for oprtions numbers
+            itemMakeOperation: 0, //item operations -view
+
+            //mie ulegają zmianie
+            itemsOperationsForView: 1, //final result of the operation
+            timeForAnswerView: 1, //time for one exercises
+            selectOperation: '' //select mathemathic operation
+        };
+        return _this;
+    }
+
+    //check final with answer
+
+
+    //show answer - form controlled
+
+
+    //start timer & game 
+
+
+    //set state game items
+
+
+    //set state game time
+
+
+    //close the view level of game and random numbers
+
+
+    //random number (min,max)
+
+
+    //random numebrs for choice
+
+
+    _createClass(Counter, [{
+        key: 'render',
+        value: function render() {
+            var _state = this.state,
+                num1 = _state.num1,
+                num2 = _state.num2,
+                points = _state.points,
+                timeForAnswer = _state.timeForAnswer,
+                showItemOperation = _state.showItemOperation,
+                finish = _state.finish,
+                itemsOperationsForView = _state.itemsOperationsForView,
+                showOptionsForUser = _state.showOptionsForUser,
+                itemMakeOperation = _state.itemMakeOperation,
+                selectOperation = _state.selectOperation;
+
+            return _react2.default.createElement(
+                'div',
+                { className: 'counter-container' },
+                !showOptionsForUser ? _react2.default.createElement(_Welcome2.default, {
+                    setItemGame: this.chooseItemGame,
+                    setTimeGame: this.chooseTimeGame,
+                    fnCloseOption: this.closeOptionForUser,
+                    setOperation: this.setOperation
+                }) : _react2.default.createElement(
+                    'div',
+                    { className: 'counter-game' },
+                    _react2.default.createElement(_ActuallyGame2.default, {
+                        finishGame: finish,
+                        num1: num1,
+                        num2: num2,
+                        fnShowAnswer: this.showAnswer,
+                        timeForAnswer: timeForAnswer,
+                        arrRandomNumber: this.state.arrForNumber,
+                        points: points,
+                        itemMakeOperation: itemMakeOperation,
+                        showItemOperation: showItemOperation,
+                        fnStartGame: this.startGame,
+                        type: selectOperation
+                    }),
+                    _react2.default.createElement(_Finish2.default, {
+                        finishGame: finish,
+                        points: points,
+                        fnResetGame: this.resetGame,
+                        itemsOperationsForView: itemsOperationsForView
+                    })
+                )
+            );
+        }
+    }]);
+
+    return Counter;
+}(_react.Component);
+
+exports.default = Counter;
+
+/***/ }),
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
-var content = __webpack_require__(28);
+var content = __webpack_require__(31);
 
 if(typeof content === 'string') content = [[module.i, content, '']];
 
@@ -21163,13 +21708,13 @@ var options = {"hmr":true}
 options.transform = transform
 options.insertInto = undefined;
 
-var update = __webpack_require__(30)(content, options);
+var update = __webpack_require__(3)(content, options);
 
 if(content.locals) module.exports = content.locals;
 
 if(false) {
-	module.hot.accept("!!../node_modules/css-loader/index.js!../node_modules/resolve-url-loader/index.js!../node_modules/sass-loader/lib/loader.js!./style.css", function() {
-		var newContent = require("!!../node_modules/css-loader/index.js!../node_modules/resolve-url-loader/index.js!../node_modules/sass-loader/lib/loader.js!./style.css");
+	module.hot.accept("!!../node_modules/css-loader/index.js!../node_modules/resolve-url-loader/index.js!../node_modules/sass-loader/lib/loader.js!./reset.scss", function() {
+		var newContent = require("!!../node_modules/css-loader/index.js!../node_modules/resolve-url-loader/index.js!../node_modules/sass-loader/lib/loader.js!./reset.scss");
 
 		if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 
@@ -21195,489 +21740,21 @@ if(false) {
 }
 
 /***/ }),
-/* 28 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(29)(false);
+exports = module.exports = __webpack_require__(2)(false);
 // imports
-exports.push([module.i, "@import url(https://fonts.googleapis.com/css?family=Finger+Paint);", ""]);
+
 
 // module
-exports.push([module.i, "body {\n  font-family: 'Finger Paint', cursive;\n  background: #1f2427;\n  color: white;\n  font-size: 20px;\n  /* text-align: center */\n}\n\nbutton {\n  font-family: 'Finger Paint', cursive;\n}\n\n/* container */\n\n.container {\n  width: 600px;\n  /* background: #353c41; */\n  padding: 50px;\n  border-radius: 10px;\n  margin: 0 auto;\n  text-align: center;\n}\n\nh1 {\n  color: red;\n  margin-bottom: 30px;\n}\n\nselect {\n  margin-left: 5px;\n  background: #353c41;\n  width: 50px;\n  height: 40px;\n  font-size: 20px;\n  color: white;\n  /* padding-left: 5px */\n}\n\noption {\n  font-size: 20px;\n}\n\nbutton {\n  background: green;\n  border: 1px solid green;\n  border-radius: 10px;\n  padding: 10px;\n  color: white;\n  text-align: center;\n  margin-top: 30px;\n  cursor: pointer;\n  font-size: 15px;\n}\n\n.showNumbers {\n  display: inline-block;\n  width: 40%;\n  background: #353c41;\n  border-radius: 10px;\n  padding: 10px;\n}\n\n.timer-points {\n  float: right;\n  width: 40%;\n  border-radius: 10px;\n  padding: 10px;\n}\n\n.timer,\n.points,\n.exercises {\n  background: #353c41;\n  margin: 20px;\n  padding: 10px;\n  border-radius: 10px;\n}\n\n.startCount {\n  margin: 20px;\n  padding: 10px;\n}\n\n.radioOption:hover {\n  background: #1f2427;\n}\n\n.radioOption {\n  padding: 10px;\n  cursor: pointer;\n  border-radius: 10px;\n}\n\ninput[type=radio] {\n  margin-right: 10px;\n  transform: scale(1.5);\n  color: gray;\n}\n\n/* for clickOn button */\n\n.clickOn {\n  opacity: 0.4;\n  cursor: not-allowed;\n}", ""]);
+exports.push([module.i, "/* http://meyerweb.com/eric/tools/css/reset/\r\n   v2.0 | 20110126\r\n   License: none (public domain)\r\n*/\n\nhtml,\nbody,\ndiv,\nspan,\napplet,\nobject,\niframe,\nh1,\nh2,\nh3,\nh4,\nh5,\nh6,\np,\nblockquote,\npre,\na,\nabbr,\nacronym,\naddress,\nbig,\ncite,\ncode,\ndel,\ndfn,\nem,\nimg,\nins,\nkbd,\nq,\ns,\nsamp,\nsmall,\nstrike,\nstrong,\nsub,\nsup,\ntt,\nvar,\nb,\nu,\ni,\ncenter,\ndl,\ndt,\ndd,\nol,\nul,\nli,\nfieldset,\nform,\nlabel,\nlegend,\ntable,\ncaption,\ntbody,\ntfoot,\nthead,\ntr,\nth,\ntd,\narticle,\naside,\ncanvas,\ndetails,\nembed,\nfigure,\nfigcaption,\nfooter,\nheader,\nhgroup,\nmenu,\nnav,\noutput,\nruby,\nsection,\nsummary,\ntime,\nmark,\naudio,\nvideo {\n  margin: 0;\n  padding: 0;\n  border: 0;\n  font-size: 100%;\n  font: inherit;\n  vertical-align: baseline;\n}\n\n/* HTML5 display-role reset for older browsers */\n\narticle,\naside,\ndetails,\nfigcaption,\nfigure,\nfooter,\nheader,\nhgroup,\nmenu,\nnav,\nsection {\n  display: block;\n}\n\nbody {\n  line-height: 1;\n}\n\nol,\nul {\n  list-style: none;\n}\n\nblockquote,\nq {\n  quotes: none;\n}\n\nblockquote:before,\nblockquote:after,\nq:before,\nq:after {\n  content: '';\n  content: none;\n}\n\ntable {\n  border-collapse: collapse;\n  border-spacing: 0;\n}\n\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n}", ""]);
 
 // exports
 
 
 /***/ }),
-/* 29 */
-/***/ (function(module, exports) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-// css base code, injected by the css-loader
-module.exports = function(useSourceMap) {
-	var list = [];
-
-	// return the list of modules as css string
-	list.toString = function toString() {
-		return this.map(function (item) {
-			var content = cssWithMappingToString(item, useSourceMap);
-			if(item[2]) {
-				return "@media " + item[2] + "{" + content + "}";
-			} else {
-				return content;
-			}
-		}).join("");
-	};
-
-	// import a list of modules into the list
-	list.i = function(modules, mediaQuery) {
-		if(typeof modules === "string")
-			modules = [[null, modules, ""]];
-		var alreadyImportedModules = {};
-		for(var i = 0; i < this.length; i++) {
-			var id = this[i][0];
-			if(typeof id === "number")
-				alreadyImportedModules[id] = true;
-		}
-		for(i = 0; i < modules.length; i++) {
-			var item = modules[i];
-			// skip already imported module
-			// this implementation is not 100% perfect for weird media query combinations
-			//  when a module is imported multiple times with different media queries.
-			//  I hope this will never occur (Hey this way we have smaller bundles)
-			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
-				if(mediaQuery && !item[2]) {
-					item[2] = mediaQuery;
-				} else if(mediaQuery) {
-					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
-				}
-				list.push(item);
-			}
-		}
-	};
-	return list;
-};
-
-function cssWithMappingToString(item, useSourceMap) {
-	var content = item[1] || '';
-	var cssMapping = item[3];
-	if (!cssMapping) {
-		return content;
-	}
-
-	if (useSourceMap && typeof btoa === 'function') {
-		var sourceMapping = toComment(cssMapping);
-		var sourceURLs = cssMapping.sources.map(function (source) {
-			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
-		});
-
-		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
-	}
-
-	return [content].join('\n');
-}
-
-// Adapted from convert-source-map (MIT)
-function toComment(sourceMap) {
-	// eslint-disable-next-line no-undef
-	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
-	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
-
-	return '/*# ' + data + ' */';
-}
-
-
-/***/ }),
-/* 30 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-
-var stylesInDom = {};
-
-var	memoize = function (fn) {
-	var memo;
-
-	return function () {
-		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
-		return memo;
-	};
-};
-
-var isOldIE = memoize(function () {
-	// Test for IE <= 9 as proposed by Browserhacks
-	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
-	// Tests for existence of standard globals is to allow style-loader
-	// to operate correctly into non-standard environments
-	// @see https://github.com/webpack-contrib/style-loader/issues/177
-	return window && document && document.all && !window.atob;
-});
-
-var getTarget = function (target) {
-  return document.querySelector(target);
-};
-
-var getElement = (function (fn) {
-	var memo = {};
-
-	return function(target) {
-                // If passing function in options, then use it for resolve "head" element.
-                // Useful for Shadow Root style i.e
-                // {
-                //   insertInto: function () { return document.querySelector("#foo").shadowRoot }
-                // }
-                if (typeof target === 'function') {
-                        return target();
-                }
-                if (typeof memo[target] === "undefined") {
-			var styleTarget = getTarget.call(this, target);
-			// Special case to return head of iframe instead of iframe itself
-			if (window.HTMLIFrameElement && styleTarget instanceof window.HTMLIFrameElement) {
-				try {
-					// This will throw an exception if access to iframe is blocked
-					// due to cross-origin restrictions
-					styleTarget = styleTarget.contentDocument.head;
-				} catch(e) {
-					styleTarget = null;
-				}
-			}
-			memo[target] = styleTarget;
-		}
-		return memo[target]
-	};
-})();
-
-var singleton = null;
-var	singletonCounter = 0;
-var	stylesInsertedAtTop = [];
-
-var	fixUrls = __webpack_require__(31);
-
-module.exports = function(list, options) {
-	if (typeof DEBUG !== "undefined" && DEBUG) {
-		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
-	}
-
-	options = options || {};
-
-	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
-
-	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-	// tags it will allow on a page
-	if (!options.singleton && typeof options.singleton !== "boolean") options.singleton = isOldIE();
-
-	// By default, add <style> tags to the <head> element
-        if (!options.insertInto) options.insertInto = "head";
-
-	// By default, add <style> tags to the bottom of the target
-	if (!options.insertAt) options.insertAt = "bottom";
-
-	var styles = listToStyles(list, options);
-
-	addStylesToDom(styles, options);
-
-	return function update (newList) {
-		var mayRemove = [];
-
-		for (var i = 0; i < styles.length; i++) {
-			var item = styles[i];
-			var domStyle = stylesInDom[item.id];
-
-			domStyle.refs--;
-			mayRemove.push(domStyle);
-		}
-
-		if(newList) {
-			var newStyles = listToStyles(newList, options);
-			addStylesToDom(newStyles, options);
-		}
-
-		for (var i = 0; i < mayRemove.length; i++) {
-			var domStyle = mayRemove[i];
-
-			if(domStyle.refs === 0) {
-				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
-
-				delete stylesInDom[domStyle.id];
-			}
-		}
-	};
-};
-
-function addStylesToDom (styles, options) {
-	for (var i = 0; i < styles.length; i++) {
-		var item = styles[i];
-		var domStyle = stylesInDom[item.id];
-
-		if(domStyle) {
-			domStyle.refs++;
-
-			for(var j = 0; j < domStyle.parts.length; j++) {
-				domStyle.parts[j](item.parts[j]);
-			}
-
-			for(; j < item.parts.length; j++) {
-				domStyle.parts.push(addStyle(item.parts[j], options));
-			}
-		} else {
-			var parts = [];
-
-			for(var j = 0; j < item.parts.length; j++) {
-				parts.push(addStyle(item.parts[j], options));
-			}
-
-			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
-		}
-	}
-}
-
-function listToStyles (list, options) {
-	var styles = [];
-	var newStyles = {};
-
-	for (var i = 0; i < list.length; i++) {
-		var item = list[i];
-		var id = options.base ? item[0] + options.base : item[0];
-		var css = item[1];
-		var media = item[2];
-		var sourceMap = item[3];
-		var part = {css: css, media: media, sourceMap: sourceMap};
-
-		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
-		else newStyles[id].parts.push(part);
-	}
-
-	return styles;
-}
-
-function insertStyleElement (options, style) {
-	var target = getElement(options.insertInto)
-
-	if (!target) {
-		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
-	}
-
-	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
-
-	if (options.insertAt === "top") {
-		if (!lastStyleElementInsertedAtTop) {
-			target.insertBefore(style, target.firstChild);
-		} else if (lastStyleElementInsertedAtTop.nextSibling) {
-			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
-		} else {
-			target.appendChild(style);
-		}
-		stylesInsertedAtTop.push(style);
-	} else if (options.insertAt === "bottom") {
-		target.appendChild(style);
-	} else if (typeof options.insertAt === "object" && options.insertAt.before) {
-		var nextSibling = getElement(options.insertInto + " " + options.insertAt.before);
-		target.insertBefore(style, nextSibling);
-	} else {
-		throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");
-	}
-}
-
-function removeStyleElement (style) {
-	if (style.parentNode === null) return false;
-	style.parentNode.removeChild(style);
-
-	var idx = stylesInsertedAtTop.indexOf(style);
-	if(idx >= 0) {
-		stylesInsertedAtTop.splice(idx, 1);
-	}
-}
-
-function createStyleElement (options) {
-	var style = document.createElement("style");
-
-	if(options.attrs.type === undefined) {
-		options.attrs.type = "text/css";
-	}
-
-	addAttrs(style, options.attrs);
-	insertStyleElement(options, style);
-
-	return style;
-}
-
-function createLinkElement (options) {
-	var link = document.createElement("link");
-
-	if(options.attrs.type === undefined) {
-		options.attrs.type = "text/css";
-	}
-	options.attrs.rel = "stylesheet";
-
-	addAttrs(link, options.attrs);
-	insertStyleElement(options, link);
-
-	return link;
-}
-
-function addAttrs (el, attrs) {
-	Object.keys(attrs).forEach(function (key) {
-		el.setAttribute(key, attrs[key]);
-	});
-}
-
-function addStyle (obj, options) {
-	var style, update, remove, result;
-
-	// If a transform function was defined, run it on the css
-	if (options.transform && obj.css) {
-	    result = options.transform(obj.css);
-
-	    if (result) {
-	    	// If transform returns a value, use that instead of the original css.
-	    	// This allows running runtime transformations on the css.
-	    	obj.css = result;
-	    } else {
-	    	// If the transform function returns a falsy value, don't add this css.
-	    	// This allows conditional loading of css
-	    	return function() {
-	    		// noop
-	    	};
-	    }
-	}
-
-	if (options.singleton) {
-		var styleIndex = singletonCounter++;
-
-		style = singleton || (singleton = createStyleElement(options));
-
-		update = applyToSingletonTag.bind(null, style, styleIndex, false);
-		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
-
-	} else if (
-		obj.sourceMap &&
-		typeof URL === "function" &&
-		typeof URL.createObjectURL === "function" &&
-		typeof URL.revokeObjectURL === "function" &&
-		typeof Blob === "function" &&
-		typeof btoa === "function"
-	) {
-		style = createLinkElement(options);
-		update = updateLink.bind(null, style, options);
-		remove = function () {
-			removeStyleElement(style);
-
-			if(style.href) URL.revokeObjectURL(style.href);
-		};
-	} else {
-		style = createStyleElement(options);
-		update = applyToTag.bind(null, style);
-		remove = function () {
-			removeStyleElement(style);
-		};
-	}
-
-	update(obj);
-
-	return function updateStyle (newObj) {
-		if (newObj) {
-			if (
-				newObj.css === obj.css &&
-				newObj.media === obj.media &&
-				newObj.sourceMap === obj.sourceMap
-			) {
-				return;
-			}
-
-			update(obj = newObj);
-		} else {
-			remove();
-		}
-	};
-}
-
-var replaceText = (function () {
-	var textStore = [];
-
-	return function (index, replacement) {
-		textStore[index] = replacement;
-
-		return textStore.filter(Boolean).join('\n');
-	};
-})();
-
-function applyToSingletonTag (style, index, remove, obj) {
-	var css = remove ? "" : obj.css;
-
-	if (style.styleSheet) {
-		style.styleSheet.cssText = replaceText(index, css);
-	} else {
-		var cssNode = document.createTextNode(css);
-		var childNodes = style.childNodes;
-
-		if (childNodes[index]) style.removeChild(childNodes[index]);
-
-		if (childNodes.length) {
-			style.insertBefore(cssNode, childNodes[index]);
-		} else {
-			style.appendChild(cssNode);
-		}
-	}
-}
-
-function applyToTag (style, obj) {
-	var css = obj.css;
-	var media = obj.media;
-
-	if(media) {
-		style.setAttribute("media", media)
-	}
-
-	if(style.styleSheet) {
-		style.styleSheet.cssText = css;
-	} else {
-		while(style.firstChild) {
-			style.removeChild(style.firstChild);
-		}
-
-		style.appendChild(document.createTextNode(css));
-	}
-}
-
-function updateLink (link, options, obj) {
-	var css = obj.css;
-	var sourceMap = obj.sourceMap;
-
-	/*
-		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
-		and there is no publicPath defined then lets turn convertToAbsoluteUrls
-		on by default.  Otherwise default to the convertToAbsoluteUrls option
-		directly
-	*/
-	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
-
-	if (options.convertToAbsoluteUrls || autoFixUrls) {
-		css = fixUrls(css);
-	}
-
-	if (sourceMap) {
-		// http://stackoverflow.com/a/26603875
-		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
-	}
-
-	var blob = new Blob([css], { type: "text/css" });
-
-	var oldSrc = link.href;
-
-	link.href = URL.createObjectURL(blob);
-
-	if(oldSrc) URL.revokeObjectURL(oldSrc);
-}
-
-
-/***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports) {
 
 
@@ -21772,7 +21849,71 @@ module.exports = function (css) {
 
 
 /***/ }),
-/* 32 */
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(34);
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(3)(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {
+	module.hot.accept("!!../../node_modules/css-loader/index.js!../../node_modules/resolve-url-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./Counter.scss", function() {
+		var newContent = require("!!../../node_modules/css-loader/index.js!../../node_modules/resolve-url-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./Counter.scss");
+
+		if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+
+		var locals = (function(a, b) {
+			var key, idx = 0;
+
+			for(key in a) {
+				if(!b || a[key] !== b[key]) return false;
+				idx++;
+			}
+
+			for(key in b) idx--;
+
+			return idx === 0;
+		}(content.locals, newContent.locals));
+
+		if(!locals) throw new Error('Aborting CSS HMR due to changed css-modules locals.');
+
+		update(newContent);
+	});
+
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(2)(false);
+// imports
+exports.push([module.i, "@import url(https://fonts.googleapis.com/css?family=Finger+Paint);", ""]);
+
+// module
+exports.push([module.i, ".counter-container {\n  font-family: 'Finger Paint', cursive;\n  height: 100vh;\n  width: 100%;\n  background: #1f2427;\n  color: white;\n}\n\n.counter-container .counter-game {\n  text-align: center;\n  width: 90%;\n  height: 100vh;\n  margin: 0 auto;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\n@media (min-width: 1000px) {\n  .counter-container .counter-game {\n    width: 60%;\n  }\n}", ""]);
+
+// exports
+
+
+/***/ }),
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21788,6 +21929,8 @@ var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
+__webpack_require__(36);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -21796,16 +21939,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var FooterGame = function (_Component) {
-    _inherits(FooterGame, _Component);
+var Finish = function (_Component) {
+    _inherits(Finish, _Component);
 
-    function FooterGame(props) {
-        _classCallCheck(this, FooterGame);
+    function Finish() {
+        _classCallCheck(this, Finish);
 
-        return _possibleConstructorReturn(this, (FooterGame.__proto__ || Object.getPrototypeOf(FooterGame)).call(this, props));
+        return _possibleConstructorReturn(this, (Finish.__proto__ || Object.getPrototypeOf(Finish)).call(this));
     }
 
-    _createClass(FooterGame, [{
+    _createClass(Finish, [{
         key: 'render',
         value: function render() {
             var _props = this.props,
@@ -21816,45 +21959,109 @@ var FooterGame = function (_Component) {
 
             return _react2.default.createElement(
                 'div',
-                null,
+                { className: 'finish-component' },
                 finishGame ? _react2.default.createElement(
                     'div',
-                    null,
+                    { className: 'finish-container' },
                     _react2.default.createElement(
-                        'h1',
-                        null,
+                        'p',
+                        { className: 'finish-title' },
                         'Result of a game'
                     ),
                     _react2.default.createElement(
-                        'h3',
-                        null,
+                        'p',
+                        { className: 'finish-exercises' },
                         'All exercises:  ',
                         itemsOperationsForView
                     ),
                     _react2.default.createElement(
-                        'h3',
-                        null,
+                        'p',
+                        { className: 'finish-points' },
                         'Points: ',
                         points,
                         ' '
                     ),
                     _react2.default.createElement(
                         'button',
-                        { disabled: false, onClick: fnResetGame },
+                        { className: 'finish-btn', disabled: false, onClick: fnResetGame },
                         'Play again'
                     )
-                ) : ''
+                ) : null
             );
         }
     }]);
 
-    return FooterGame;
+    return Finish;
 }(_react.Component);
 
-exports.default = FooterGame;
+exports.default = Finish;
 
 /***/ }),
-/* 33 */
+/* 36 */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(37);
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(3)(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {
+	module.hot.accept("!!../../node_modules/css-loader/index.js!../../node_modules/resolve-url-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./Finish.scss", function() {
+		var newContent = require("!!../../node_modules/css-loader/index.js!../../node_modules/resolve-url-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./Finish.scss");
+
+		if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+
+		var locals = (function(a, b) {
+			var key, idx = 0;
+
+			for(key in a) {
+				if(!b || a[key] !== b[key]) return false;
+				idx++;
+			}
+
+			for(key in b) idx--;
+
+			return idx === 0;
+		}(content.locals, newContent.locals));
+
+		if(!locals) throw new Error('Aborting CSS HMR due to changed css-modules locals.');
+
+		update(newContent);
+	});
+
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(2)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".finish-component {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  width: 90%;\n}\n\n.finish-component .finish-container .finish-title {\n  color: red;\n  font-size: 35px;\n  font-weight: 700;\n  padding: 50px 0;\n  text-shadow: 5px 5px 10px grey;\n}\n\n@media (min-width: 800px) {\n  .finish-component .finish-container .finish-title {\n    padding-bottom: 80px;\n    font-size: 50px;\n  }\n}\n\n.finish-component .finish-container .finish-exercises {\n  width: 230px;\n  padding: 10px 0;\n  color: white;\n  background: #353c41;\n  border-radius: 10px;\n  margin: 10px auto;\n  font-size: 25px;\n}\n\n.finish-component .finish-container .finish-points {\n  width: 230px;\n  padding: 10px 0;\n  color: white;\n  background: #353c41;\n  border-radius: 10px;\n  margin: 10px auto;\n  font-size: 25px;\n}\n\n.finish-component .finish-container .finish-btn {\n  font-family: 'Finger Paint', cursive;\n  background: green;\n  color: white;\n  font-size: 20px;\n  border: 1px solid green;\n  border-radius: 10px;\n  padding: 10px 20px;\n  margin: 20px 0;\n  transition: 0.2s;\n  cursor: pointer;\n}\n\n.finish-component .finish-container .finish-btn:hover {\n  box-shadow: 0px 0px 10px 2px white;\n}\n\n@media (min-width: 800px) {\n  .finish-component .finish-container .finish-btn {\n    margin: 50px 0;\n  }\n}", ""]);
+
+// exports
+
+
+/***/ }),
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -21870,6 +22077,12 @@ var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
+__webpack_require__(39);
+
+var _Selection = __webpack_require__(41);
+
+var _Selection2 = _interopRequireDefault(_Selection);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -21878,17 +22091,349 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var BodyGame = function (_Component) {
-    _inherits(BodyGame, _Component);
+var Welcome = function (_Component) {
+    _inherits(Welcome, _Component);
 
-    function BodyGame(props) {
-        _classCallCheck(this, BodyGame);
+    function Welcome(props) {
+        _classCallCheck(this, Welcome);
 
-        return _possibleConstructorReturn(this, (BodyGame.__proto__ || Object.getPrototypeOf(BodyGame)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (Welcome.__proto__ || Object.getPrototypeOf(Welcome)).call(this, props));
+
+        _this.componentDidMount = function () {
+            var _this$state = _this.state,
+                quantityExercises = _this$state.quantityExercises,
+                quantityTime = _this$state.quantityTime;
+
+            var exercisesSelect = [];
+            var timesSelect = [];
+            for (var i = 1; i <= quantityExercises; i++) {
+                exercisesSelect.push(i);
+            }
+            for (var _i = 1; _i <= quantityTime; _i++) {
+                timesSelect.push(_i);
+            }
+
+            _this.setState({
+                exercisesSelect: exercisesSelect,
+                timeSelect: timesSelect
+            });
+        };
+
+        _this.state = {
+            // YOU CAN SET A PARAM
+            quantityExercises: 10, // numbers to show for qunatity exercises
+            quantityTime: 10, // numbers to show for time exercises
+
+            exercisesSelect: [],
+            timeSelect: [],
+            operationsSelect: ['addition', 'substraction', 'multiplication', 'division']
+        };
+        return _this;
     }
 
-    _createClass(BodyGame, [{
-        key: "render",
+    _createClass(Welcome, [{
+        key: 'render',
+        value: function render() {
+            var _props = this.props,
+                setItemGame = _props.setItemGame,
+                setTimeGame = _props.setTimeGame,
+                fnCloseOption = _props.fnCloseOption,
+                setOperation = _props.setOperation;
+            var _state = this.state,
+                exercisesSelect = _state.exercisesSelect,
+                timeSelect = _state.timeSelect,
+                operationsSelect = _state.operationsSelect;
+
+            return _react2.default.createElement(
+                'div',
+                { className: 'welcome-container' },
+                _react2.default.createElement(
+                    'h1',
+                    { className: 'welcome-title' },
+                    'Game of counter'
+                ),
+                _react2.default.createElement(_Selection2.default, { title: 'Select the quantity od exercises', select: exercisesSelect, fnSet: setItemGame }),
+                _react2.default.createElement(_Selection2.default, { title: 'Select time for one exercises (seconds)', select: timeSelect, fnSet: setTimeGame }),
+                _react2.default.createElement(_Selection2.default, { title: 'Select option game', select: operationsSelect, fnSet: setOperation }),
+                _react2.default.createElement(
+                    'button',
+                    { className: 'welcome-btn', onClick: fnCloseOption },
+                    'Ready!'
+                )
+            );
+        }
+    }]);
+
+    return Welcome;
+}(_react.Component);
+
+exports.default = Welcome;
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(40);
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(3)(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {
+	module.hot.accept("!!../../node_modules/css-loader/index.js!../../node_modules/resolve-url-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./Welcome.scss", function() {
+		var newContent = require("!!../../node_modules/css-loader/index.js!../../node_modules/resolve-url-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./Welcome.scss");
+
+		if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+
+		var locals = (function(a, b) {
+			var key, idx = 0;
+
+			for(key in a) {
+				if(!b || a[key] !== b[key]) return false;
+				idx++;
+			}
+
+			for(key in b) idx--;
+
+			return idx === 0;
+		}(content.locals, newContent.locals));
+
+		if(!locals) throw new Error('Aborting CSS HMR due to changed css-modules locals.');
+
+		update(newContent);
+	});
+
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(2)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".welcome-container {\n  text-align: center;\n  width: 90%;\n  margin: 0 auto;\n}\n\n.welcome-container .welcome-title {\n  color: red;\n  font-size: 40px;\n  font-weight: 700;\n  padding: 50px 0;\n  text-shadow: 5px 5px 10px grey;\n}\n\n@media (min-width: 800px) {\n  .welcome-container .welcome-title {\n    padding-bottom: 80px;\n    font-size: 50px;\n  }\n}\n\n.welcome-container .welcome-btn {\n  font-family: 'Finger Paint', cursive;\n  background: #23a023;\n  color: white;\n  font-size: 20px;\n  border: 1px solid #23a023;\n  border-radius: 10px;\n  padding: 10px 20px;\n  margin: 20px 0;\n  transition: 0.2s;\n  cursor: pointer;\n}\n\n.welcome-container .welcome-btn:hover {\n  box-shadow: 0px 0px 10px 2px white;\n}\n\n@media (min-width: 800px) {\n  .welcome-container .welcome-btn {\n    margin: 50px 0;\n  }\n}", ""]);
+
+// exports
+
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+__webpack_require__(42);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Selection = function (_Component) {
+    _inherits(Selection, _Component);
+
+    function Selection() {
+        _classCallCheck(this, Selection);
+
+        return _possibleConstructorReturn(this, (Selection.__proto__ || Object.getPrototypeOf(Selection)).call(this));
+    }
+
+    _createClass(Selection, [{
+        key: 'render',
+        value: function render() {
+            var _props = this.props,
+                title = _props.title,
+                select = _props.select;
+
+            return _react2.default.createElement(
+                'div',
+                { className: 'selection-container' },
+                _react2.default.createElement(
+                    'p',
+                    { className: 'selection-title' },
+                    title
+                ),
+                _react2.default.createElement(
+                    'select',
+                    { onChange: this.props.fnSet, className: 'selection-select' },
+                    _react2.default.createElement(
+                        'option',
+                        { key: 0, value: '-', className: 'selection-option' },
+                        '-'
+                    ),
+                    select.map(function (el) {
+                        return _react2.default.createElement(
+                            'option',
+                            { key: el, value: el, className: 'selection-option' },
+                            el
+                        );
+                    })
+                )
+            );
+        }
+    }]);
+
+    return Selection;
+}(_react.Component);
+
+exports.default = Selection;
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(43);
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(3)(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {
+	module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/resolve-url-loader/index.js!../../../node_modules/sass-loader/lib/loader.js!./Selection.scss", function() {
+		var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/resolve-url-loader/index.js!../../../node_modules/sass-loader/lib/loader.js!./Selection.scss");
+
+		if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+
+		var locals = (function(a, b) {
+			var key, idx = 0;
+
+			for(key in a) {
+				if(!b || a[key] !== b[key]) return false;
+				idx++;
+			}
+
+			for(key in b) idx--;
+
+			return idx === 0;
+		}(content.locals, newContent.locals));
+
+		if(!locals) throw new Error('Aborting CSS HMR due to changed css-modules locals.');
+
+		update(newContent);
+	});
+
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(2)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".selection-container .selection-title {\n  font-size: 20px;\n}\n\n.selection-container .selection-select {\n  color: black;\n  margin: 20px 0;\n  height: 30px;\n  text-align: center;\n  font-size: 15px;\n  padding: 0 10px;\n}", ""]);
+
+// exports
+
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+__webpack_require__(45);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var ActuallyGame = function (_Component) {
+    _inherits(ActuallyGame, _Component);
+
+    function ActuallyGame(props) {
+        _classCallCheck(this, ActuallyGame);
+
+        var _this = _possibleConstructorReturn(this, (ActuallyGame.__proto__ || Object.getPrototypeOf(ActuallyGame)).call(this, props));
+
+        _this.componentDidMount = function () {
+            var type = _this.props.type;
+
+            var info = void 0;
+            if (type == 'addition') {
+                info = '+';
+            } else if (type == 'substraction') {
+                info = '-';
+            } else if (type == 'multiplication') {
+                info = '*';
+            } else {
+                info = '/';
+            };
+            _this.setState({
+                operation: info
+            });
+        };
+
+        _this.state = {
+            operation: ''
+        };
+        return _this;
+    }
+
+    _createClass(ActuallyGame, [{
+        key: 'render',
         value: function render() {
             var _props = this.props,
                 num1 = _props.num1,
@@ -21901,197 +22446,158 @@ var BodyGame = function (_Component) {
                 itemMakeOperation = _props.itemMakeOperation,
                 showItemOperation = _props.showItemOperation,
                 fnStartGame = _props.fnStartGame;
-
-            return _react2.default.createElement(
-                "div",
-                null,
-                !finishGame ? _react2.default.createElement(
-                    "div",
-                    null,
-                    _react2.default.createElement(
-                        "div",
-                        { className: "showNumbers" },
-                        _react2.default.createElement(
-                            "h1",
-                            null,
-                            num1,
-                            " + ",
-                            num2,
-                            " = ? "
-                        ),
-                        _react2.default.createElement(
-                            "div",
-                            null,
-                            arrRandomNumber.map(function (el, index) {
-                                return _react2.default.createElement(
-                                    "label",
-                                    { key: el, htmlFor: el },
-                                    _react2.default.createElement(
-                                        "div",
-                                        { className: "radioOption" },
-                                        _react2.default.createElement("input", { key: el, onChange: fnShowAnswer, type: "radio", id: el, name: "option", value: el }),
-                                        el
-                                    )
-                                );
-                            })
-                        )
-                    ),
-                    _react2.default.createElement(
-                        "div",
-                        { className: "timer-points" },
-                        _react2.default.createElement(
-                            "h2",
-                            { className: "timer" },
-                            "Timer:",
-                            _react2.default.createElement(
-                                "b",
-                                { style: { color: 'red' } },
-                                timeForAnswer
-                            )
-                        ),
-                        _react2.default.createElement(
-                            "h2",
-                            { className: "points" },
-                            "Points:",
-                            _react2.default.createElement(
-                                "a",
-                                { style: { color: 'green' } },
-                                points
-                            )
-                        ),
-                        _react2.default.createElement(
-                            "h2",
-                            { className: "exercises" },
-                            "To end:",
-                            _react2.default.createElement(
-                                "a",
-                                { style: { color: 'royalblue' } },
-                                showItemOperation - 1
-                            )
-                        ),
-                        _react2.default.createElement(
-                            "button",
-                            { className: "startCount", onClick: fnStartGame },
-                            "Start Game!"
-                        )
-                    )
-                ) : ''
-            );
-        }
-    }]);
-
-    return BodyGame;
-}(_react.Component);
-
-exports.default = BodyGame;
-
-/***/ }),
-/* 34 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _react = __webpack_require__(1);
-
-var _react2 = _interopRequireDefault(_react);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var HeaderWelcome = function (_Component) {
-    _inherits(HeaderWelcome, _Component);
-
-    function HeaderWelcome(props) {
-        _classCallCheck(this, HeaderWelcome);
-
-        var _this = _possibleConstructorReturn(this, (HeaderWelcome.__proto__ || Object.getPrototypeOf(HeaderWelcome)).call(this, props));
-
-        _this.state = {
-            quan: 10 // choose numbers of qunatity & time 
-        };
-        return _this;
-    }
-
-    _createClass(HeaderWelcome, [{
-        key: 'render',
-        value: function render() {
-            var chooseItemsGame = [];
-            var chooseTimeForGame = [];
-            //make a option numebrs
-            for (var i = 1; i <= this.state.quan; i++) {
-                chooseItemsGame.push(i);
-                chooseTimeForGame.push(i.toFixed(2));
-            };
-            var _props = this.props,
-                fnItemGame = _props.fnItemGame,
-                fnTimeGame = _props.fnTimeGame,
-                fnCloseOption = _props.fnCloseOption;
+            var operation = this.state.operation;
 
             return _react2.default.createElement(
                 'div',
-                null,
-                _react2.default.createElement(
-                    'h1',
-                    null,
-                    'Game of counter'
-                ),
-                _react2.default.createElement(
-                    'p',
-                    null,
-                    'Select the quantity of exercises:',
+                { className: 'actuallyGame-container' },
+                !finishGame ? _react2.default.createElement(
+                    'div',
+                    { className: 'actuallyGame-question' },
                     _react2.default.createElement(
-                        'select',
-                        { onChange: fnItemGame },
-                        chooseItemsGame.map(function (el) {
+                        'h1',
+                        null,
+                        num1,
+                        ' ',
+                        operation,
+                        ' ',
+                        num2,
+                        ' = ? '
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        { className: 'actuallyGame-answer' },
+                        arrRandomNumber.map(function (el, index) {
                             return _react2.default.createElement(
-                                'option',
-                                { key: el, value: el },
-                                el
+                                'label',
+                                { key: index + num1 + num2, htmlFor: el },
+                                _react2.default.createElement(
+                                    'div',
+                                    { className: 'actuallyGame-answerOptions' },
+                                    _react2.default.createElement('input', { key: el, onChange: fnShowAnswer, type: 'radio', id: el, name: 'option', value: el }),
+                                    el
+                                )
                             );
                         })
                     )
-                ),
-                _react2.default.createElement(
-                    'p',
-                    null,
-                    'Select time for one exercise (seconds):',
+                ) : null,
+                !finishGame ? _react2.default.createElement(
+                    'div',
+                    { className: 'actuallyGame-info' },
                     _react2.default.createElement(
-                        'select',
-                        { onChange: fnTimeGame },
-                        chooseTimeForGame.map(function (el) {
-                            return _react2.default.createElement(
-                                'option',
-                                { key: el, value: el },
-                                Math.floor(el)
-                            );
-                        })
+                        'p',
+                        { className: 'timer' },
+                        'Timer:',
+                        _react2.default.createElement(
+                            'a',
+                            null,
+                            ' ',
+                            timeForAnswer,
+                            ' '
+                        )
+                    ),
+                    _react2.default.createElement(
+                        'p',
+                        { className: 'points' },
+                        'Points:',
+                        _react2.default.createElement(
+                            'a',
+                            null,
+                            ' ',
+                            points,
+                            ' '
+                        )
+                    ),
+                    _react2.default.createElement(
+                        'p',
+                        { className: 'exercises' },
+                        'To end:',
+                        _react2.default.createElement(
+                            'a',
+                            null,
+                            ' ',
+                            showItemOperation - 1,
+                            ' '
+                        )
+                    ),
+                    _react2.default.createElement(
+                        'button',
+                        { className: 'actuallyGame-btn', onClick: fnStartGame },
+                        'Start Game!'
                     )
-                ),
-                _react2.default.createElement(
-                    'button',
-                    { onClick: fnCloseOption },
-                    'Ready!'
-                )
+                ) : null
             );
         }
     }]);
 
-    return HeaderWelcome;
+    return ActuallyGame;
 }(_react.Component);
 
-exports.default = HeaderWelcome;
+exports.default = ActuallyGame;
+
+/***/ }),
+/* 45 */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(46);
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(3)(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {
+	module.hot.accept("!!../../node_modules/css-loader/index.js!../../node_modules/resolve-url-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./ActuallyGame.scss", function() {
+		var newContent = require("!!../../node_modules/css-loader/index.js!../../node_modules/resolve-url-loader/index.js!../../node_modules/sass-loader/lib/loader.js!./ActuallyGame.scss");
+
+		if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+
+		var locals = (function(a, b) {
+			var key, idx = 0;
+
+			for(key in a) {
+				if(!b || a[key] !== b[key]) return false;
+				idx++;
+			}
+
+			for(key in b) idx--;
+
+			return idx === 0;
+		}(content.locals, newContent.locals));
+
+		if(!locals) throw new Error('Aborting CSS HMR due to changed css-modules locals.');
+
+		update(newContent);
+	});
+
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(2)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".actuallyGame-container {\n  background: #1f2427;\n  height: 100vh;\n  width: 100%;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-around;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container {\n    flex-direction: row;\n    height: 40%;\n    width: 100%;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question {\n  background: #353c41;\n  border-radius: 10px;\n  padding: 10px 0;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question {\n    width: 40%;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question h1 {\n  color: red;\n  padding: 20px 0;\n  font-size: 30px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question h1 {\n    font-size: 40px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions {\n  padding: 15px 0;\n  font-size: 25px;\n  width: 90%;\n  margin: 0 auto;\n  border-radius: 10px;\n  cursor: pointer;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions {\n    font-size: 35px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions:hover {\n  background-color: #1f2427;\n}\n\n.actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions input {\n  margin-right: 20px;\n  transform: scale(1.2);\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions input {\n    transform: scale(1.5);\n  }\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info {\n    width: 50%;\n  }\n}\n\n@media (min-width: 1200px) {\n  .actuallyGame-container .actuallyGame-info {\n    width: 40%;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .timer {\n  background: #353c41;\n  font-size: 20px;\n  margin: 15px 0;\n  padding: 15px 0;\n  border-radius: 10px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .timer {\n    font-size: 30px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .timer a {\n  color: red;\n  display: block;\n}\n\n.actuallyGame-container .actuallyGame-info .points {\n  background: #353c41;\n  font-size: 20px;\n  margin: 15px 0;\n  padding: 15px 0;\n  border-radius: 10px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .points {\n    font-size: 30px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .points a {\n  color: green;\n}\n\n.actuallyGame-container .actuallyGame-info .exercises {\n  background: #353c41;\n  font-size: 20px;\n  margin: 15px 0;\n  padding: 15px 0;\n  border-radius: 10px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .exercises {\n    font-size: 30px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .exercises a {\n  color: royalblue;\n}\n\n.actuallyGame-container .actuallyGame-info .actuallyGame-btn {\n  font-family: 'Finger Paint', cursive;\n  width: 100%;\n  background: green;\n  color: white;\n  font-size: 20px;\n  border: 1px solid green;\n  border-radius: 10px;\n  padding: 20px 0;\n  margin: 0 auto;\n  text-align: center;\n  cursor: pointer;\n  transition: 0.2s;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .actuallyGame-btn {\n    padding: 25px 0;\n    margin-top: 20px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .actuallyGame-btn:hover {\n  box-shadow: 0px 0px 10px 2px white;\n}\n\n.actuallyGame-container .actuallyGame-info .clickOn {\n  cursor: no-drop;\n  background-color: rgba(0, 128, 0, 0.431);\n  opacity: 0.3;\n  border: none;\n}\n\n.actuallyGame-container .actuallyGame-info .clickOn:hover {\n  box-shadow: none;\n}", ""]);
+
+// exports
+
 
 /***/ })
 /******/ ]);

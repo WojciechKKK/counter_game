@@ -1,0 +1,58 @@
+$title-color: rgb(255,0,0);
+$background: #353c41;
+$btnBackground: green; 
+
+@mixin finalElements{
+    width: 230px;
+    padding: 10px 0;
+    color: white;
+    background: $background;
+    border-radius: 10px;
+    margin: 10px auto;
+    font-size: 25px;
+}
+.finish-component{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 90%;
+   
+    .finish-container{
+         .finish-title{
+            color: $title-color;
+            font-size: 35px;
+            font-weight: 700;
+            padding: 50px 0;
+            text-shadow: 5px 5px 10px grey;
+            @media(min-width:800px){
+                padding-bottom: 80px; 
+                font-size: 50px;
+            }
+        }
+        .finish-exercises{
+            @include finalElements;
+        }
+        .finish-points{
+            @include finalElements;
+        }
+        .finish-btn{
+            font-family: 'Finger Paint', cursive;
+            background: $btnBackground;
+            color: white;
+            font-size: 20px;
+            border: 1px solid $btnBackground;
+            border-radius: 10px;
+            padding: 10px 20px;
+            margin: 20px 0;
+            transition: 0.2s;
+            cursor: pointer;
+            &:hover{
+                box-shadow: 0px 0px 10px 2px white;
+            }
+            @media(min-width: 800px){
+                margin: 50px 0;
+            }
+        }
+    }
+}

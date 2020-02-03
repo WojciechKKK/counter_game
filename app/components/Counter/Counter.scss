@@ -1,0 +1,21 @@
+@import url(https://fonts.googleapis.com/css?family=Finger+Paint);
+
+.counter-container{
+    font-family: 'Finger Paint', cursive;
+    height: 100vh;
+    width: 100%;
+    background: #1f2427;
+    color: rgb(255,255,255);
+    .counter-game{
+        text-align: center;
+        width: 90%;
+        height: 100vh;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        @media(min-width: 1000px){
+            width: 60%
+        }
+    }
+}
