@@ -5,7 +5,7 @@
 * [Setup](#setup)
 
 #### General info
-This project is a game that allows you to practice adding number. Playing for time.
+This project is a game that allows you to practice addition / subtraction / multiplication / division number. Playing for time.
 You can choose the amount of time to one exercise and amount exercises to do.
 
 	
@@ -13,6 +13,7 @@ You can choose the amount of time to one exercise and amount exercises to do.
 Project is created with:
 * React
 * ES6
+* Sass
 * Webpack
 	
 #### Setup
@@ -25,5 +26,5 @@ $ npm start
 
 To run this project, use below link:
 
-https://wojciechkkk.github.io/counter_game/index.html
+https://wojciechkkk.pl/counter
 
