@@ -1,4 +1,4 @@
-## Counter-Game - project in React
+## Counter-Game 
 #### Table of contents
 * [General info](#general-info)
 * [Technologies](#technologies)
