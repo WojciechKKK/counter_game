@@ -4,11 +4,13 @@ $btnBakground: green;
 @mixin infoElement($color){
     background: $color;
     font-size: 20px;
-    margin: 15px 0;
-    padding: 15px 0;
+    margin: 10px 0;
+    padding: 10px 0;
     border-radius: 10px;
     @media(min-width: 1000px){
         font-size: 30px;
+        margin: 15px 0;
+        padding: 15px 0;
     }
 }
 
@@ -20,11 +22,13 @@ $btnBakground: green;
     display: flex;
     flex-direction: column;
     // justify-content: center;
-    justify-content: space-around;
+    // justify-content: space-around;
+    justify-content: center;
     @media(min-width: 1000px){
         flex-direction: row;
         height:40%;
-        width: 100%
+        width: 100%;
+        justify-content: space-around;
     }
    
     .actuallyGame-question{
@@ -34,9 +38,9 @@ $btnBakground: green;
         @media(min-width: 1000px){
             width: 40%;
         }
-        h1{
+        .actuallyGame-questionText{
             color: red;
-            padding: 20px 0;
+            padding: 10px 0;
             font-size: 30px;
             @media(min-width: 1000px){
                 font-size: 40px;
@@ -45,12 +49,16 @@ $btnBakground: green;
         
         .actuallyGame-answer{
             .actuallyGame-answerOptions{
-                padding: 15px 0;
-                font-size: 25px;
+                padding: 10px 0;
+                font-size: 20px;
                 width: 90%;
                 margin: 0 auto;
                 border-radius: 10px;
                 cursor: pointer;
+                @media(min-width: 8000px){
+                    padding: 15px 0;
+                    font-size: 25px;
+                }
                 @media(min-width: 1000px){
                     font-size: 35px;
                 }
@@ -76,9 +84,13 @@ $btnBakground: green;
         }
         .timer{
            @include infoElement($background);
+        //    margin: 0 auto;
             a{
                 color: red;
                 display: block;
+            }
+            @media(min-width: 1000px){
+                margin: 0 auto;
             }
         }
         .points{
@@ -102,14 +114,14 @@ $btnBakground: green;
             font-size: 20px;
             border: 1px solid green;
             border-radius: 10px;
-            padding: 20px 0;
+            padding: 10px 0;
             margin: 0 auto;
             text-align: center;
-            cursor: pointer;
             transition: 0.2s;
+            cursor: pointer;
             @media(min-width: 1000px){
-                padding: 25px 0;
-                margin-top: 20px;
+                padding: 15px 0;
+                // margin-top: 20px;
             }
             &:hover{
                 box-shadow: 0px 0px 10px 2px white;

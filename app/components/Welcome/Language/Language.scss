@@ -1,0 +1,13 @@
+.language-component{
+    padding-bottom: 20px;
+    color: grey;
+    .language{
+        display: inline-block;
+        padding: 0 5px;
+        font-size: 10px;
+        cursor: pointer;
+    }
+    .active{
+        color:white
+    }
+}

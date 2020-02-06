@@ -10,11 +10,13 @@ $btn-color: rgb(255,255,255);
         color: $title-color;
         font-size: 40px;
         font-weight: 700;
-        padding: 50px 0;
+        padding-top: 30px;
+        padding-bottom: 10px;
         text-shadow: 5px 5px 10px grey;
         @media(min-width:800px){
             padding-bottom: 80px; 
             font-size: 50px;
+            padding-bottom: 20px;
         }
     }
     .welcome-btn{

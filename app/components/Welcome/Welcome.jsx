@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import './Welcome.scss'
 import Selection from './Selection/Selection.jsx'
+import Language from './Language/Language.jsx'
 
 class Welcome extends Component{
     constructor(props){
@@ -12,7 +13,10 @@ class Welcome extends Component{
 
             exercisesSelect: [], 
             timeSelect: [],
-            operationsSelect: ['addition', 'substraction', 'multiplication', 'division']
+            operationsSelectENG: ['addition', 'substraction', 'multiplication', 'division'],
+            operationsSelectPL: ['dodawanie', 'odejmowanie', 'mnożenie', 'dzielenie'],
+            textENG:["Select the quantity od exercises", "Select time for one exercises (seconds)", "Select option game", "Ready!"],
+            textPL:["Wybierz ilość zadań", "Wybierz czas na jedno zadanie (sekundy)", "Wybierz działanie", "Start!"]
         }
     }
 
@@ -35,16 +39,17 @@ class Welcome extends Component{
     }
 
     render(){
-        const { setItemGame, setTimeGame, fnCloseOption, setOperation } = this.props
-        const { exercisesSelect , timeSelect, operationsSelect } = this.state;
+        const { setItemGame, setTimeGame, fnCloseOption, setOperation, changeLanguage , language,  } = this.props
+        const { exercisesSelect , timeSelect, operationsSelect, textENG, textPL, operationsSelectENG, operationsSelectPL } = this.state;
         return(
             <div className="welcome-container">
                 <h1 className="welcome-title">Game of counter</h1> 
-                <Selection title="Select the quantity od exercises" select={exercisesSelect} fnSet={setItemGame}/>
-                <Selection title="Select time for one exercises (seconds)" select={timeSelect} fnSet={setTimeGame} />
-                <Selection title="Select option game" select={operationsSelect} fnSet={setOperation} />
+                <Language changeLanguage={changeLanguage} language={language}/>
+                <Selection title={language == 'PL' ? textPL[0] : textENG[0]} select={exercisesSelect} fnSet={setItemGame}/>
+                <Selection title={language == 'PL' ? textPL[1] : textENG[1]} select={timeSelect} fnSet={setTimeGame} />
+                <Selection title={language == 'PL' ? textPL[2] : textENG[2]} select={language == 'PL' ? operationsSelectPL : operationsSelectENG} fnSet={setOperation} />
                 <button className="welcome-btn" onClick={fnCloseOption}>
-                    Ready!
+                    {language == 'PL' ? textPL[3] : textENG[3]}
                 </button>
             </div>
         )

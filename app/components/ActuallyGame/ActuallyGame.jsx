@@ -5,7 +5,9 @@ class ActuallyGame extends Component{
     constructor(props){
         super(props);
         this.state = {
-            operation: ''
+            operation: '',
+            textENG: ['Timer', 'Points', 'To end', 'Start Game!'],
+            textPL: ['Czas', 'Punkty', 'Pozostało', 'Start!']
         }
     }
     componentDidMount = () => {
@@ -25,15 +27,15 @@ class ActuallyGame extends Component{
         })
     }
     render(){
-        const {num1, num2 , finishGame, fnShowAnswer, timeForAnswer, arrRandomNumber, points, itemMakeOperation, showItemOperation, fnStartGame } = this.props
-        const { operation } = this.state;
+        const {num1, num2 , finishGame, fnShowAnswer, timeForAnswer, arrRandomNumber, points, itemMakeOperation, showItemOperation, fnStartGame, language } = this.props
+        const { operation, textENG , textPL } = this.state;
         return(
             <div className="actuallyGame-container">
                 { 
                     !finishGame
                     ? <div className="actuallyGame-question">
                             {/* <h2>Remain exercises: {showItemOperation}</h2> */}
-                            <h1>{num1} {operation} {num2} = ? </h1>
+                            <h1 className="actuallyGame-questionText">{num1} {operation} {num2} = ? </h1>
                             <div className="actuallyGame-answer">
                                 {arrRandomNumber.map((el,index) => {
                                     return(
@@ -52,17 +54,17 @@ class ActuallyGame extends Component{
                 {
                   !finishGame
                   ?  <div className="actuallyGame-info">
-                        <p className="timer">Timer:
+                        <p className="timer">{language == 'PL' ? textPL[0] : textENG[0]}:
                             <a> {timeForAnswer} </a>
                         </p>
-                        <p className="points">Points: 
+                        <p className="points">{language == 'PL' ? textPL[1] : textENG[1]}: 
                             <a> { points } </a>
                         </p>
-                        <p className="exercises">To end: 
+                        <p className="exercises">{language == 'PL' ? textPL[2] : textENG[2]}: 
                             <a> {showItemOperation -1} </a>
                         </p>
                         <button className="actuallyGame-btn" onClick={ fnStartGame }>
-                            Start Game!
+                            {language == 'PL' ? textPL[3] : textENG[3]}
                         </button>
                      </div>
                     : null

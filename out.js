@@ -65,6 +65,21 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+if (process.env.NODE_ENV === 'production') {
+  module.exports = __webpack_require__(19);
+} else {
+  module.exports = __webpack_require__(20);
+}
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -252,21 +267,6 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(19);
-} else {
-  module.exports = __webpack_require__(20);
-}
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
 /* 2 */
@@ -836,7 +836,7 @@ function invariant(condition, format, a, b, c, d, e, f) {
 }
 
 module.exports = invariant;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 6 */
@@ -957,7 +957,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 module.exports = emptyObject;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 8 */
@@ -1026,7 +1026,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 module.exports = warning;
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 9 */
@@ -1125,7 +1125,7 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
 
 module.exports = checkPropTypes;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 10 */
@@ -1870,7 +1870,7 @@ var _reactDom = __webpack_require__(17);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
-var _react = __webpack_require__(1);
+var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -1930,7 +1930,7 @@ if (process.env.NODE_ENV === 'production') {
   module.exports = __webpack_require__(24);
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 18 */
@@ -1949,7 +1949,7 @@ if (process.env.NODE_ENV === 'production') {
 /*
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var aa=__webpack_require__(5),ba=__webpack_require__(1),m=__webpack_require__(10),p=__webpack_require__(6),v=__webpack_require__(4),da=__webpack_require__(11),ea=__webpack_require__(12),fa=__webpack_require__(13),ha=__webpack_require__(7);
+var aa=__webpack_require__(5),ba=__webpack_require__(0),m=__webpack_require__(10),p=__webpack_require__(6),v=__webpack_require__(4),da=__webpack_require__(11),ea=__webpack_require__(12),fa=__webpack_require__(13),ha=__webpack_require__(7);
 function A(a){for(var b=arguments.length-1,c="https://reactjs.org/docs/error-decoder.html?invariant="+a,d=0;d<b;d++)c+="&args[]="+encodeURIComponent(arguments[d+1]);aa(!1,"Minified React error #"+a+"; visit %s for the full message or use the non-minified dev environment for full errors and additional helpful warnings. ",c)}ba?void 0:A("227");
 function ia(a,b,c,d,e,f,g,h,k){this._hasCaughtError=!1;this._caughtError=null;var n=Array.prototype.slice.call(arguments,3);try{b.apply(c,n)}catch(r){this._caughtError=r,this._hasCaughtError=!0}}
 var B={_caughtError:null,_hasCaughtError:!1,_rethrowError:null,_hasRethrowError:!1,invokeGuardedCallback:function(a,b,c,d,e,f,g,h,k){ia.apply(B,arguments)},invokeGuardedCallbackAndCatchFirstError:function(a,b,c,d,e,f,g,h,k){B.invokeGuardedCallback.apply(this,arguments);if(B.hasCaughtError()){var n=B.clearCaughtError();B._hasRethrowError||(B._hasRethrowError=!0,B._rethrowError=n)}},rethrowCaughtError:function(){return ka.apply(B,arguments)},hasCaughtError:function(){return B._hasCaughtError},clearCaughtError:function(){if(B._hasCaughtError){var a=
@@ -3700,7 +3700,7 @@ module.exports = react;
   })();
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 21 */
@@ -3800,7 +3800,7 @@ if (process.env.NODE_ENV !== "production") {
 'use strict';
 
 var invariant = __webpack_require__(5);
-var React = __webpack_require__(1);
+var React = __webpack_require__(0);
 var warning = __webpack_require__(8);
 var ExecutionEnvironment = __webpack_require__(10);
 var _assign = __webpack_require__(6);
@@ -21213,7 +21213,7 @@ module.exports = reactDom;
   })();
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 25 */
@@ -21384,7 +21384,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(1);
+var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -21400,7 +21400,7 @@ var _Welcome = __webpack_require__(38);
 
 var _Welcome2 = _interopRequireDefault(_Welcome);
 
-var _ActuallyGame = __webpack_require__(44);
+var _ActuallyGame = __webpack_require__(47);
 
 var _ActuallyGame2 = _interopRequireDefault(_ActuallyGame);
 
@@ -21419,6 +21419,12 @@ var Counter = function (_Component) {
         _classCallCheck(this, Counter);
 
         var _this = _possibleConstructorReturn(this, (Counter.__proto__ || Object.getPrototypeOf(Counter)).call(this, props));
+
+        _this.setLanguage = function (text) {
+            _this.setState({
+                language: text
+            });
+        };
 
         _this.randomNUmbers = function () {
             var selectOperation = _this.state.selectOperation;
@@ -21605,7 +21611,9 @@ var Counter = function (_Component) {
             //mie ulegają zmianie
             itemsOperationsForView: 1, //final result of the operation
             timeForAnswerView: 1, //time for one exercises
-            selectOperation: '' //select mathemathic operation
+            selectOperation: '', //select mathemathic operation
+
+            language: 'ENG'
         };
         return _this;
     }
@@ -21647,7 +21655,8 @@ var Counter = function (_Component) {
                 itemsOperationsForView = _state.itemsOperationsForView,
                 showOptionsForUser = _state.showOptionsForUser,
                 itemMakeOperation = _state.itemMakeOperation,
-                selectOperation = _state.selectOperation;
+                selectOperation = _state.selectOperation,
+                language = _state.language;
 
             return _react2.default.createElement(
                 'div',
@@ -21656,7 +21665,9 @@ var Counter = function (_Component) {
                     setItemGame: this.chooseItemGame,
                     setTimeGame: this.chooseTimeGame,
                     fnCloseOption: this.closeOptionForUser,
-                    setOperation: this.setOperation
+                    setOperation: this.setOperation,
+                    language: language,
+                    changeLanguage: this.setLanguage
                 }) : _react2.default.createElement(
                     'div',
                     { className: 'counter-game' },
@@ -21671,13 +21682,15 @@ var Counter = function (_Component) {
                         itemMakeOperation: itemMakeOperation,
                         showItemOperation: showItemOperation,
                         fnStartGame: this.startGame,
-                        type: selectOperation
+                        type: selectOperation,
+                        language: language
                     }),
                     _react2.default.createElement(_Finish2.default, {
                         finishGame: finish,
                         points: points,
                         fnResetGame: this.resetGame,
-                        itemsOperationsForView: itemsOperationsForView
+                        itemsOperationsForView: itemsOperationsForView,
+                        language: language
                     })
                 )
             );
@@ -21925,7 +21938,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(1);
+var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -21945,7 +21958,26 @@ var Finish = function (_Component) {
     function Finish() {
         _classCallCheck(this, Finish);
 
-        return _possibleConstructorReturn(this, (Finish.__proto__ || Object.getPrototypeOf(Finish)).call(this));
+        var _this = _possibleConstructorReturn(this, (Finish.__proto__ || Object.getPrototypeOf(Finish)).call(this));
+
+        _this.componentDidMount = function () {
+            if (_this.props.language == 'PL') {
+                _this.setState({
+                    finalText: _this.state.textPL
+                });
+            } else {
+                _this.setState({
+                    finalText: _this.state.textENG
+                });
+            }
+        };
+
+        _this.state = {
+            textPL: ['Wyniki gry', 'Ilość zadań', 'Punkty', 'Zagraj jeszcze raz'],
+            textENG: ['Result of a game', 'All exercises', 'Points', 'Play again'],
+            finalText: []
+        };
+        return _this;
     }
 
     _createClass(Finish, [{
@@ -21956,6 +21988,7 @@ var Finish = function (_Component) {
                 points = _props.points,
                 itemsOperationsForView = _props.itemsOperationsForView,
                 fnResetGame = _props.fnResetGame;
+            var finalText = this.state.finalText;
 
             return _react2.default.createElement(
                 'div',
@@ -21966,25 +21999,28 @@ var Finish = function (_Component) {
                     _react2.default.createElement(
                         'p',
                         { className: 'finish-title' },
-                        'Result of a game'
+                        finalText[0]
                     ),
                     _react2.default.createElement(
                         'p',
                         { className: 'finish-exercises' },
-                        'All exercises:  ',
+                        finalText[1],
+                        ': ',
                         itemsOperationsForView
                     ),
                     _react2.default.createElement(
                         'p',
                         { className: 'finish-points' },
-                        'Points: ',
+                        ' ',
+                        finalText[2],
+                        ': ',
                         points,
                         ' '
                     ),
                     _react2.default.createElement(
                         'button',
                         { className: 'finish-btn', disabled: false, onClick: fnResetGame },
-                        'Play again'
+                        finalText[3]
                     )
                 ) : null
             );
@@ -22073,7 +22109,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(1);
+var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -22082,6 +22118,10 @@ __webpack_require__(39);
 var _Selection = __webpack_require__(41);
 
 var _Selection2 = _interopRequireDefault(_Selection);
+
+var _Language = __webpack_require__(44);
+
+var _Language2 = _interopRequireDefault(_Language);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -22126,7 +22166,10 @@ var Welcome = function (_Component) {
 
             exercisesSelect: [],
             timeSelect: [],
-            operationsSelect: ['addition', 'substraction', 'multiplication', 'division']
+            operationsSelectENG: ['addition', 'substraction', 'multiplication', 'division'],
+            operationsSelectPL: ['dodawanie', 'odejmowanie', 'mnożenie', 'dzielenie'],
+            textENG: ["Select the quantity od exercises", "Select time for one exercises (seconds)", "Select option game", "Ready!"],
+            textPL: ["Wybierz ilość zadań", "Wybierz czas na jedno zadanie (sekundy)", "Wybierz działanie", "Start!"]
         };
         return _this;
     }
@@ -22138,11 +22181,17 @@ var Welcome = function (_Component) {
                 setItemGame = _props.setItemGame,
                 setTimeGame = _props.setTimeGame,
                 fnCloseOption = _props.fnCloseOption,
-                setOperation = _props.setOperation;
+                setOperation = _props.setOperation,
+                changeLanguage = _props.changeLanguage,
+                language = _props.language;
             var _state = this.state,
                 exercisesSelect = _state.exercisesSelect,
                 timeSelect = _state.timeSelect,
-                operationsSelect = _state.operationsSelect;
+                operationsSelect = _state.operationsSelect,
+                textENG = _state.textENG,
+                textPL = _state.textPL,
+                operationsSelectENG = _state.operationsSelectENG,
+                operationsSelectPL = _state.operationsSelectPL;
 
             return _react2.default.createElement(
                 'div',
@@ -22152,13 +22201,14 @@ var Welcome = function (_Component) {
                     { className: 'welcome-title' },
                     'Game of counter'
                 ),
-                _react2.default.createElement(_Selection2.default, { title: 'Select the quantity od exercises', select: exercisesSelect, fnSet: setItemGame }),
-                _react2.default.createElement(_Selection2.default, { title: 'Select time for one exercises (seconds)', select: timeSelect, fnSet: setTimeGame }),
-                _react2.default.createElement(_Selection2.default, { title: 'Select option game', select: operationsSelect, fnSet: setOperation }),
+                _react2.default.createElement(_Language2.default, { changeLanguage: changeLanguage, language: language }),
+                _react2.default.createElement(_Selection2.default, { title: language == 'PL' ? textPL[0] : textENG[0], select: exercisesSelect, fnSet: setItemGame }),
+                _react2.default.createElement(_Selection2.default, { title: language == 'PL' ? textPL[1] : textENG[1], select: timeSelect, fnSet: setTimeGame }),
+                _react2.default.createElement(_Selection2.default, { title: language == 'PL' ? textPL[2] : textENG[2], select: language == 'PL' ? operationsSelectPL : operationsSelectENG, fnSet: setOperation }),
                 _react2.default.createElement(
                     'button',
                     { className: 'welcome-btn', onClick: fnCloseOption },
-                    'Ready!'
+                    language == 'PL' ? textPL[3] : textENG[3]
                 )
             );
         }
@@ -22228,7 +22278,7 @@ exports = module.exports = __webpack_require__(2)(false);
 
 
 // module
-exports.push([module.i, ".welcome-container {\n  text-align: center;\n  width: 90%;\n  margin: 0 auto;\n}\n\n.welcome-container .welcome-title {\n  color: red;\n  font-size: 40px;\n  font-weight: 700;\n  padding: 50px 0;\n  text-shadow: 5px 5px 10px grey;\n}\n\n@media (min-width: 800px) {\n  .welcome-container .welcome-title {\n    padding-bottom: 80px;\n    font-size: 50px;\n  }\n}\n\n.welcome-container .welcome-btn {\n  font-family: 'Finger Paint', cursive;\n  background: #23a023;\n  color: white;\n  font-size: 20px;\n  border: 1px solid #23a023;\n  border-radius: 10px;\n  padding: 10px 20px;\n  margin: 20px 0;\n  transition: 0.2s;\n  cursor: pointer;\n}\n\n.welcome-container .welcome-btn:hover {\n  box-shadow: 0px 0px 10px 2px white;\n}\n\n@media (min-width: 800px) {\n  .welcome-container .welcome-btn {\n    margin: 50px 0;\n  }\n}", ""]);
+exports.push([module.i, ".welcome-container {\n  text-align: center;\n  width: 90%;\n  margin: 0 auto;\n}\n\n.welcome-container .welcome-title {\n  color: red;\n  font-size: 40px;\n  font-weight: 700;\n  padding-top: 30px;\n  padding-bottom: 10px;\n  text-shadow: 5px 5px 10px grey;\n}\n\n@media (min-width: 800px) {\n  .welcome-container .welcome-title {\n    padding-bottom: 80px;\n    font-size: 50px;\n    padding-bottom: 20px;\n  }\n}\n\n.welcome-container .welcome-btn {\n  font-family: 'Finger Paint', cursive;\n  background: #23a023;\n  color: white;\n  font-size: 20px;\n  border: 1px solid #23a023;\n  border-radius: 10px;\n  padding: 10px 20px;\n  margin: 20px 0;\n  transition: 0.2s;\n  cursor: pointer;\n}\n\n.welcome-container .welcome-btn:hover {\n  box-shadow: 0px 0px 10px 2px white;\n}\n\n@media (min-width: 800px) {\n  .welcome-container .welcome-btn {\n    margin: 50px 0;\n  }\n}", ""]);
 
 // exports
 
@@ -22246,7 +22296,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(1);
+var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -22386,11 +22436,151 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(1);
+var _react = __webpack_require__(0);
 
 var _react2 = _interopRequireDefault(_react);
 
 __webpack_require__(45);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Language = function (_Component) {
+    _inherits(Language, _Component);
+
+    function Language() {
+        _classCallCheck(this, Language);
+
+        var _this = _possibleConstructorReturn(this, (Language.__proto__ || Object.getPrototypeOf(Language)).call(this));
+
+        _this.setHandleLanguage = function (e) {
+            var allLanguages = document.querySelectorAll('.language');
+            for (var i = 0; i < allLanguages.length; i++) {
+                allLanguages[i].classList.remove('active');
+            }
+            e.currentTarget.classList.add('active');
+            console.log(e.currentTarget.innerText);
+            if (typeof _this.props.changeLanguage == 'function') {
+                _this.props.changeLanguage(e.currentTarget.innerText);
+            }
+        };
+
+        return _this;
+    }
+
+    _createClass(Language, [{
+        key: 'render',
+        value: function render() {
+            return _react2.default.createElement(
+                'div',
+                { className: 'language-component' },
+                _react2.default.createElement(
+                    'p',
+                    { className: 'language', onClick: this.setHandleLanguage },
+                    'PL'
+                ),
+                '/',
+                _react2.default.createElement(
+                    'p',
+                    { className: 'language active', onClick: this.setHandleLanguage },
+                    'ENG'
+                )
+            );
+        }
+    }]);
+
+    return Language;
+}(_react.Component);
+
+exports.default = Language;
+
+/***/ }),
+/* 45 */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(46);
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(3)(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {
+	module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/resolve-url-loader/index.js!../../../node_modules/sass-loader/lib/loader.js!./Language.scss", function() {
+		var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/resolve-url-loader/index.js!../../../node_modules/sass-loader/lib/loader.js!./Language.scss");
+
+		if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+
+		var locals = (function(a, b) {
+			var key, idx = 0;
+
+			for(key in a) {
+				if(!b || a[key] !== b[key]) return false;
+				idx++;
+			}
+
+			for(key in b) idx--;
+
+			return idx === 0;
+		}(content.locals, newContent.locals));
+
+		if(!locals) throw new Error('Aborting CSS HMR due to changed css-modules locals.');
+
+		update(newContent);
+	});
+
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(2)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".language-component {\n  padding-bottom: 20px;\n  color: grey;\n}\n\n.language-component .language {\n  display: inline-block;\n  padding: 0 5px;\n  font-size: 10px;\n  cursor: pointer;\n}\n\n.language-component .active {\n  color: white;\n}", ""]);
+
+// exports
+
+
+/***/ }),
+/* 47 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+__webpack_require__(48);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -22427,7 +22617,9 @@ var ActuallyGame = function (_Component) {
         };
 
         _this.state = {
-            operation: ''
+            operation: '',
+            textENG: ['Timer', 'Points', 'To end', 'Start Game!'],
+            textPL: ['Czas', 'Punkty', 'Pozostało', 'Start!']
         };
         return _this;
     }
@@ -22445,8 +22637,12 @@ var ActuallyGame = function (_Component) {
                 points = _props.points,
                 itemMakeOperation = _props.itemMakeOperation,
                 showItemOperation = _props.showItemOperation,
-                fnStartGame = _props.fnStartGame;
-            var operation = this.state.operation;
+                fnStartGame = _props.fnStartGame,
+                language = _props.language;
+            var _state = this.state,
+                operation = _state.operation,
+                textENG = _state.textENG,
+                textPL = _state.textPL;
 
             return _react2.default.createElement(
                 'div',
@@ -22456,7 +22652,7 @@ var ActuallyGame = function (_Component) {
                     { className: 'actuallyGame-question' },
                     _react2.default.createElement(
                         'h1',
-                        null,
+                        { className: 'actuallyGame-questionText' },
                         num1,
                         ' ',
                         operation,
@@ -22487,7 +22683,8 @@ var ActuallyGame = function (_Component) {
                     _react2.default.createElement(
                         'p',
                         { className: 'timer' },
-                        'Timer:',
+                        language == 'PL' ? textPL[0] : textENG[0],
+                        ':',
                         _react2.default.createElement(
                             'a',
                             null,
@@ -22499,7 +22696,8 @@ var ActuallyGame = function (_Component) {
                     _react2.default.createElement(
                         'p',
                         { className: 'points' },
-                        'Points:',
+                        language == 'PL' ? textPL[1] : textENG[1],
+                        ':',
                         _react2.default.createElement(
                             'a',
                             null,
@@ -22511,7 +22709,8 @@ var ActuallyGame = function (_Component) {
                     _react2.default.createElement(
                         'p',
                         { className: 'exercises' },
-                        'To end:',
+                        language == 'PL' ? textPL[2] : textENG[2],
+                        ':',
                         _react2.default.createElement(
                             'a',
                             null,
@@ -22523,7 +22722,7 @@ var ActuallyGame = function (_Component) {
                     _react2.default.createElement(
                         'button',
                         { className: 'actuallyGame-btn', onClick: fnStartGame },
-                        'Start Game!'
+                        language == 'PL' ? textPL[3] : textENG[3]
                     )
                 ) : null
             );
@@ -22536,11 +22735,11 @@ var ActuallyGame = function (_Component) {
 exports.default = ActuallyGame;
 
 /***/ }),
-/* 45 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
-var content = __webpack_require__(46);
+var content = __webpack_require__(49);
 
 if(typeof content === 'string') content = [[module.i, content, '']];
 
@@ -22586,7 +22785,7 @@ if(false) {
 }
 
 /***/ }),
-/* 46 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(2)(false);
@@ -22594,7 +22793,7 @@ exports = module.exports = __webpack_require__(2)(false);
 
 
 // module
-exports.push([module.i, ".actuallyGame-container {\n  background: #1f2427;\n  height: 100vh;\n  width: 100%;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-around;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container {\n    flex-direction: row;\n    height: 40%;\n    width: 100%;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question {\n  background: #353c41;\n  border-radius: 10px;\n  padding: 10px 0;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question {\n    width: 40%;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question h1 {\n  color: red;\n  padding: 20px 0;\n  font-size: 30px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question h1 {\n    font-size: 40px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions {\n  padding: 15px 0;\n  font-size: 25px;\n  width: 90%;\n  margin: 0 auto;\n  border-radius: 10px;\n  cursor: pointer;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions {\n    font-size: 35px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions:hover {\n  background-color: #1f2427;\n}\n\n.actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions input {\n  margin-right: 20px;\n  transform: scale(1.2);\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions input {\n    transform: scale(1.5);\n  }\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info {\n    width: 50%;\n  }\n}\n\n@media (min-width: 1200px) {\n  .actuallyGame-container .actuallyGame-info {\n    width: 40%;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .timer {\n  background: #353c41;\n  font-size: 20px;\n  margin: 15px 0;\n  padding: 15px 0;\n  border-radius: 10px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .timer {\n    font-size: 30px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .timer a {\n  color: red;\n  display: block;\n}\n\n.actuallyGame-container .actuallyGame-info .points {\n  background: #353c41;\n  font-size: 20px;\n  margin: 15px 0;\n  padding: 15px 0;\n  border-radius: 10px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .points {\n    font-size: 30px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .points a {\n  color: green;\n}\n\n.actuallyGame-container .actuallyGame-info .exercises {\n  background: #353c41;\n  font-size: 20px;\n  margin: 15px 0;\n  padding: 15px 0;\n  border-radius: 10px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .exercises {\n    font-size: 30px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .exercises a {\n  color: royalblue;\n}\n\n.actuallyGame-container .actuallyGame-info .actuallyGame-btn {\n  font-family: 'Finger Paint', cursive;\n  width: 100%;\n  background: green;\n  color: white;\n  font-size: 20px;\n  border: 1px solid green;\n  border-radius: 10px;\n  padding: 20px 0;\n  margin: 0 auto;\n  text-align: center;\n  cursor: pointer;\n  transition: 0.2s;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .actuallyGame-btn {\n    padding: 25px 0;\n    margin-top: 20px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .actuallyGame-btn:hover {\n  box-shadow: 0px 0px 10px 2px white;\n}\n\n.actuallyGame-container .actuallyGame-info .clickOn {\n  cursor: no-drop;\n  background-color: rgba(0, 128, 0, 0.431);\n  opacity: 0.3;\n  border: none;\n}\n\n.actuallyGame-container .actuallyGame-info .clickOn:hover {\n  box-shadow: none;\n}", ""]);
+exports.push([module.i, ".actuallyGame-container {\n  background: #1f2427;\n  height: 100vh;\n  width: 100%;\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container {\n    flex-direction: row;\n    height: 40%;\n    width: 100%;\n    justify-content: space-around;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question {\n  background: #353c41;\n  border-radius: 10px;\n  padding: 10px 0;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question {\n    width: 40%;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question .actuallyGame-questionText {\n  color: red;\n  padding: 10px 0;\n  font-size: 30px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question .actuallyGame-questionText {\n    font-size: 40px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions {\n  padding: 10px 0;\n  font-size: 20px;\n  width: 90%;\n  margin: 0 auto;\n  border-radius: 10px;\n  cursor: pointer;\n}\n\n@media (min-width: 8000px) {\n  .actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions {\n    padding: 15px 0;\n    font-size: 25px;\n  }\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions {\n    font-size: 35px;\n  }\n}\n\n.actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions:hover {\n  background-color: #1f2427;\n}\n\n.actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions input {\n  margin-right: 20px;\n  transform: scale(1.2);\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-question .actuallyGame-answer .actuallyGame-answerOptions input {\n    transform: scale(1.5);\n  }\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info {\n    width: 50%;\n  }\n}\n\n@media (min-width: 1200px) {\n  .actuallyGame-container .actuallyGame-info {\n    width: 40%;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .timer {\n  background: #353c41;\n  font-size: 20px;\n  margin: 10px 0;\n  padding: 10px 0;\n  border-radius: 10px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .timer {\n    font-size: 30px;\n    margin: 15px 0;\n    padding: 15px 0;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .timer a {\n  color: red;\n  display: block;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .timer {\n    margin: 0 auto;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .points {\n  background: #353c41;\n  font-size: 20px;\n  margin: 10px 0;\n  padding: 10px 0;\n  border-radius: 10px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .points {\n    font-size: 30px;\n    margin: 15px 0;\n    padding: 15px 0;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .points a {\n  color: green;\n}\n\n.actuallyGame-container .actuallyGame-info .exercises {\n  background: #353c41;\n  font-size: 20px;\n  margin: 10px 0;\n  padding: 10px 0;\n  border-radius: 10px;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .exercises {\n    font-size: 30px;\n    margin: 15px 0;\n    padding: 15px 0;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .exercises a {\n  color: royalblue;\n}\n\n.actuallyGame-container .actuallyGame-info .actuallyGame-btn {\n  font-family: 'Finger Paint', cursive;\n  width: 100%;\n  background: green;\n  color: white;\n  font-size: 20px;\n  border: 1px solid green;\n  border-radius: 10px;\n  padding: 10px 0;\n  margin: 0 auto;\n  text-align: center;\n  transition: 0.2s;\n  cursor: pointer;\n}\n\n@media (min-width: 1000px) {\n  .actuallyGame-container .actuallyGame-info .actuallyGame-btn {\n    padding: 15px 0;\n  }\n}\n\n.actuallyGame-container .actuallyGame-info .actuallyGame-btn:hover {\n  box-shadow: 0px 0px 10px 2px white;\n}\n\n.actuallyGame-container .actuallyGame-info .clickOn {\n  cursor: no-drop;\n  background-color: rgba(0, 128, 0, 0.431);\n  opacity: 0.3;\n  border: none;\n}\n\n.actuallyGame-container .actuallyGame-info .clickOn:hover {\n  box-shadow: none;\n}", ""]);
 
 // exports
 

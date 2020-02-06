@@ -25,10 +25,17 @@ class Counter extends Component{
             //mie ulegają zmianie
             itemsOperationsForView: 1,  //final result of the operation
             timeForAnswerView: 1,       //time for one exercises
-            selectOperation:''          //select mathemathic operation
+            selectOperation:'',          //select mathemathic operation
+
+            language: 'ENG'
         }
     }
     
+    setLanguage = (text) => {
+      this.setState({
+        language: text
+      })
+    }
 
     randomNUmbers = () => {
       const { selectOperation } = this.state;
@@ -202,7 +209,7 @@ class Counter extends Component{
     }
 
     render(){
-    const { num1, num2, points, timeForAnswer, showItemOperation, finish, itemsOperationsForView, showOptionsForUser, itemMakeOperation, selectOperation } = this.state;
+    const { num1, num2, points, timeForAnswer, showItemOperation, finish, itemsOperationsForView, showOptionsForUser, itemMakeOperation, selectOperation, language } = this.state;
         return(
           <div className="counter-container">
             { 
@@ -212,6 +219,8 @@ class Counter extends Component{
                     setTimeGame={this.chooseTimeGame} 
                     fnCloseOption={this.closeOptionForUser} 
                     setOperation={this.setOperation}
+                    language={language}
+                    changeLanguage={this.setLanguage}
                   />
                 : <div className="counter-game">
                     <ActuallyGame 
@@ -226,12 +235,14 @@ class Counter extends Component{
                       showItemOperation={showItemOperation}
                       fnStartGame={this.startGame}
                       type={selectOperation}
+                      language={language}
                     />
                     <Finish 
                       finishGame={finish} 
                       points={points} 
                       fnResetGame={this.resetGame} 
                       itemsOperationsForView={itemsOperationsForView} 
+                      language={language}
                     />
                   </div>
             }
